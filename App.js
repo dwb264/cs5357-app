@@ -622,6 +622,36 @@ class RequestFormScreen extends React.Component {
         };
     }
 
+    componentDidMount() {
+        // See if the user has a currently open job, and if so, load it
+        fetch(api + '/jobs', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin',
+        }).then(response => {
+            if (response.status === 200) {
+                response = parseResponseBody(response);
+                if (response) {
+                    this.setState({
+                        startAddress: response.start_address,
+                        endAddress: response.end_address,
+                        startTime: response.start_time,
+                        endTime: response.end_time,
+                        maximumPrice: response.max_price,
+                        description: response.description,
+                        submitted: true,
+                    })
+                }
+            } else {
+                console.log(JSON.stringify(response));
+                throw new Error('Something went wrong on api server!');
+            }
+        });
+    }
+
     render() {
         const { navigate } = this.props.navigation;
 
@@ -799,6 +829,7 @@ class MoverList extends React.Component {
 
     componentDidMount() {
         if (jobId) {
+            // Get jobs
             fetch(api + "/getOffers/" + jobId, {
                 method: 'GET',
                 headers: {
@@ -807,8 +838,25 @@ class MoverList extends React.Component {
             }).then(response => {
                 if (response.status === 200) {
                     response = parseResponseBody(response);
-                    responsedata = [];
+                    var responsedata = [];
                     for (var i = 0; i < response.length; i++) {
+                        var userId = response[i]["userId"];
+
+                        // Get the mover's user data
+                        fetch(api + "/profile/" + userId, {
+                            method: 'GET',
+                            headers: {
+                                'Accept': 'application/json',
+                            }, credentials: 'same-origin',
+                        }).then(userResponse => {
+                            if (userResponse.status === 200) {
+                                userResponse = parseResponseBody(userResponse);
+                                response[i]["user"] = userResponse;
+                            } else {
+                                console.log(userResponse);
+                            }
+                        });
+
                         responsedata.push({
                             "key": i,
                             "values": response[i]
@@ -819,6 +867,8 @@ class MoverList extends React.Component {
                     throw new Error('Something went wrong on api server!');
                 }
             });
+            // Get mover info for each job
+
         }
     }
 
@@ -1319,32 +1369,32 @@ class ProfileScreen extends React.Component {
                             </View>
                         </View>
 
-                        <View style={{width: "90%"}}>
+                        <View style={{width: "90%", display: isMover ? 'flex' : 'none'}}>
                             <Text style={styles.jobDetailDesc}>Zip Code</Text>
                             <TextInput
-                                style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}
+                                style={styles.formField}
                                 placeholder="Zip Code"
                                 defaultValue={this.state.zipCode}
                                 onChangeText={(text) => this.setState({newZipCode: text})}
                             />
                         </View>
 
-                        <View style={{width: "90%"}}>
+                        <View style={{width: "90%", display: isMover ? 'flex' : 'none'}}>
                             <Text style={styles.jobDetailDesc}>Vehicle Type</Text>
 
                             <TextInput
-                                style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}
+                                style={styles.formField}
                                 placeholder="Vehicle Type"
                                 defaultValue={this.state.vehicle}
                                 onChangeText={(text) => this.setState({newVehicle: text})}
                             />
                         </View>
 
-                        <View style={{width: "90%"}}>
+                        <View style={{width: "90%", display: isMover ? 'flex' : 'none'}}>
                             <Text style={styles.jobDetailDesc}>Payment Types Accepted</Text>
 
                             <TextInput
-                                style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}
+                                style={styles.formField}
                                 placeholder="Payment Types Accepted"
                                 defaultValue={this.state.payments}
                                 onChangeText={(text) => this.setState({newPayments: text})}
@@ -1517,7 +1567,6 @@ class JobDetailScreen extends React.Component {
             }
         });
 
-
         fetch(api + "/getOffers/" + this.state.jobId, {
             method: 'GET',
             headers: {
@@ -1526,6 +1575,7 @@ class JobDetailScreen extends React.Component {
         }).then(response => {
             if (response.status === 200) {
                 response = parseResponseBody(response);
+                console.log(response);
                 var offers = [];
                 if (response.length > 0) {
                     for (var i = 0; i < response.length; i++) {

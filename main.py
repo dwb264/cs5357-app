@@ -189,6 +189,17 @@ def get_profile():
     response = jsonify(session.get('user'))
     return response
 
+# Get a specific user's profile
+@app.route('/profile/<user_id>', methods = ['GET'])
+def get_user_profile(user_id):
+    if session.get('user') is None:
+        raise Unauthorized()
+
+    user = users.find_one({'_id': ObjectId(user_id)}, projection={'password': False}) # Don't return the user's password
+    response = jsonify(user)
+
+    return response
+
 
 @app.route('/verify', methods = ['POST'])
 def verifyCode():
@@ -318,6 +329,7 @@ def create_job():
 
     # Insert into the mongo collection
     res = jobs.insert_one(job_record)
+
     return Response(str(res.inserted_id), 200)
 
 @app.route('/jobs', methods=['GET'])
@@ -325,8 +337,13 @@ def get_jobs():
     if session.get('user') is None:
         raise Unauthorized()
 
-    all_jobs = json_util.dumps(jobs.find({}))
-    return Response(all_jobs, 200)
+    if session.get('user')['type'] == "requester":
+        job = jobs.find_one({'user': session['user']['_id']['$oid'], 'job_status': 'Open'})
+        res = json_util.dumps(job)
+        return Response(res, 200) # will return None if the user has no open job, this is ok
+    else:
+        all_jobs = json_util.dumps(jobs.find({}))
+        return Response(all_jobs, 200)
 
 @app.route('/jobs/<jobid>', methods=['GET'])
 def job_desc(jobid):
@@ -436,21 +453,12 @@ def getOffers(job_id):
     if session.get('user') is None:
         raise Unauthorized()
 
-    job = jobs.find_one({"_id":ObjectId(job_id)})
+    job = jobs.find_one({"_id": ObjectId(job_id)})
 
     if job is None:
         raise BadRequest("invalid Job ID")
 
-    #if job["user"] != session.get('user')["_id"]["$oid"]:
-     #   raise Unauthorized()
-
-    user = users.find_one({"_id": ObjectId(job["user"])})
-    offer = offers.find_one({'jobId': job_id})
-
-    if offer is not None:
-        offer.update({"user": user})
-
-    return Response(json_util.dumps(offer), 200)
+    return Response(json_util.dumps(offers.find({'jobId': job_id})), 200)
 
 
 @app.route('/acceptOffer', methods=['POST'])
