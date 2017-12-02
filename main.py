@@ -112,19 +112,23 @@ def add_new_user():
                 "vehicle": body.get("vehicle"),
                 "verified_phone": False}    
 
-    try:
+    if users.find_one({"username": body.get("username")}):
+        raise NotFound('Username already exists')
+    else:
         users.insert_one(newUser)
-    except DuplicateKeyError:
-        raise NotFound('User already exists')
 
-    # check that mongo didn't fail
+    user = users.find_one({'username': body.get('username')})
+    serializable_user_obj = json.loads(json_util.dumps(user))
+    session['user'] = serializable_user_obj
+
     return Response(status=201)
 
 
 @app.route('/profile', methods = ['PUT'])
 def update():
-    # if session.get('user') is None:
-    #     raise Unauthorized()
+    if session.get('user') is None:
+        raise Unauthorized()
+
     if not request.is_json:
         raise UnsupportedMediaType()
 
@@ -146,7 +150,27 @@ def update():
         else:
             raise BadRequest("invalid phone number")
 
-    user = users.find_one({'username': body.get('username')})
+
+    if body.get("first_name"):
+        users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'first_name':body.get("first_name")}})
+
+    if body.get("last_name"):
+        users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'last_name':body.get("last_name")}})
+
+    if body.get("zipcode"):
+        users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'zipcode':body.get("zipcode")}})
+
+    if body.get("password"):
+        password_hash = security.generate_password_hash(body.get('password'))
+        users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'password':password_hash}})
+
+    if body.get("payment"):
+        users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'payment':body.get("payment")}})
+
+    if body.get("vehicle"):
+        users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'vehicle':body.get("vehicle")}})
+
+    user = users.find_one({'username': session.get('user')['username']})
 
     serializable_user_obj = json.loads(json_util.dumps(user))
     session['user'] = serializable_user_obj
@@ -157,7 +181,7 @@ def update():
     ##TODO: implement update method
 
 @app.route('/profile', methods = ['GET'])
-def update_profile():
+def get_profile():
     if session.get('user') is None:
         raise Unauthorized()
 
@@ -187,7 +211,7 @@ def verifyCode():
     if resp.content["success"]:
         users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'verified_phone':True}})
 
-        user = users.find_one({'username': body.get('username')})
+        user = users.find_one({'username': session.get('user')['username']})
 
         serializable_user_obj = json.loads(json_util.dumps(user))
         session['user'] = serializable_user_obj
@@ -416,12 +440,15 @@ def getOffers(job_id):
     if job is None:
         raise BadRequest("invalid Job ID")
 
-    if job["user"] != session.get('user')["_id"]["$oid"]:
-        raise Unauthorized()
+    #if job["user"] != session.get('user')["_id"]["$oid"]:
+     #   raise Unauthorized()
 
-    # TODO also return mover's profile info
+    user = users.find_one({"_id": ObjectId(job["user"])})
+    offer = offers.find_one({'jobId': job_id})
 
-    return Response(json_util.dumps(offers.find({'jobId': job_id})), 200)
+    offer.update({"user": user})
+
+    return Response(json_util.dumps(offer), 200)
 
 
 
