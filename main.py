@@ -41,6 +41,7 @@ DB_USER = "admin"
 DB_PASS = "Hello7777"
 
 connection = MongoClient(DB_HOST, DB_PORT)
+
 db = connection[DB_NAME]
 db.authenticate(DB_USER, DB_PASS)
 
@@ -446,10 +447,10 @@ def getOffers(job_id):
     user = users.find_one({"_id": ObjectId(job["user"])})
     offer = offers.find_one({'jobId': job_id})
 
-    offer.update({"user": user})
+    if offer is not None:
+        offer.update({"user": user})
 
     return Response(json_util.dumps(offer), 200)
-
 
 
 @app.route('/acceptOffer', methods=['POST'])
@@ -839,4 +840,4 @@ def acceptOffer():
 # When run in GCP, Gunicorn is used instead (see entrypoint in app.yaml) to
 # Access the Flack app via WSGI
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=8080, debug=True)
+    app.run(host='127.0.0.1', port=8081, debug=True)

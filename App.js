@@ -4,8 +4,7 @@ import { StackNavigator, TabNavigator, TabView} from 'react-navigation';
 import DateTimePicker from 'react-native-modal-datetime-picker';
 
 var userType; // either mover or requester
-var validatedPhone = false; // keep track of whether phone has been validated
-var api = "http://127.0.0.1:8080";
+var api = "http://127.0.0.1:8081";
 var jobId = null; // Current job id; null if no current job
 
 const sanitizeInput = (str) => {
@@ -543,10 +542,8 @@ class EnterCodeScreen extends React.Component {
                     }).then(response => {
                         if (response.status === 200) {
                             if (userType == 'requester') {
-                                validatedPhone = true;
                                 navigate('Requester');
                             } else {
-                                validatedPhone = true;
                                 navigate('Mover');
                             }
                         } else {
@@ -1124,6 +1121,7 @@ class ProfileScreen extends React.Component {
             zipCode: "",
             vehicle: "",
             payments: "",
+            validatedPhone: false,
 
             // If the user changes anything, it will be stored here
             newFirstName: null,
@@ -1169,19 +1167,84 @@ class ProfileScreen extends React.Component {
 
         const updateProfile = () => {
             // TODO: Validate form and post data to DB
-            return true;
+            var validData = {};
+
+            if (this.state.newFirstName !== null) {
+
+            }
+
+            if (this.state.newLastName !== null) {
+
+            }
+
+            if (this.state.newUsername !== null) {
+
+            }
+
+            if (this.state.newPassword !== null) {
+
+            }
+
+            if (this.state.newZipcode !== null) {
+
+            }
+
+            if (this.state.newVehicle != null) {
+
+            }
+
+            if (this.state.newPayments != null) {
+
+            }
+
+            fetch(api + "/profile", {
+                method: 'PUT',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }, credentials: 'same-origin',
+            }).then(response => {
+                if (response.status === 200) {
+                    response = parseResponseBody(response);
+                    this.setState({
+                        firstName: response.first_name,
+                        lastName: response.last_name,
+                        username: response.username,
+                        password: response.password,
+                        zipCode: response.zipcode,
+                        vehicle: response.vehicle,
+                        payments: response.payment,
+                    });
+
+                } else {
+                    throw new Error('Something went wrong on api server!');
+                }
+            });
         };
 
         const cancelUpdateProfile = () => {
-            // TODO: Revert all fields to original state
-            this.setState({
-                firstName: this.state.first_name,
-                lastName: this.state.last_name,
-                username: this.state.username,
-                password: this.state.password,
-                zipCode: this.state.zipcode,
-                vehicle: this.state.vehicle,
-                payments: this.state.payment,
+            // Revert all fields to original state
+            fetch(api + "/profile", {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                }, credentials: 'same-origin',
+            }).then(response => {
+                if (response.status === 200) {
+                    response = parseResponseBody(response);
+                    this.setState({
+                        firstName: response.first_name,
+                        lastName: response.last_name,
+                        username: response.username,
+                        password: response.password,
+                        zipCode: response.zipcode,
+                        vehicle: response.vehicle,
+                        payments: response.payment,
+                    });
+
+                } else {
+                    throw new Error('Something went wrong on api server!');
+                }
             });
         };
 
@@ -1199,65 +1262,94 @@ class ProfileScreen extends React.Component {
                         </View>
 
                     <Text
-                        style={{display: validatedPhone ? 'none' : 'flex',
+                        style={{display: this.state.validatedPhone ? 'none' : 'flex',
                             width: "100%",
                             backgroundColor: "yellow",
                             padding: 5,
                             marginTop: 0,
-                            textAlign: 'center'
+                            textAlign: 'center',
                         }}
                         onPress={() => navigate('GetCode')}
                     >Phone not yet validated. Tap here to validate phone</Text>
-                    <View style={{flex:0, flexDirection: "row", justifyContent: "space-between", width: "90%"}}>
+                    <View style={{flex:0, flexDirection: "row", justifyContent: "space-between", width: "90%", marginTop: 20}}>
                         <TouchableOpacity onPress={() => updateProfilePhoto()}>
-                            <Image source={this.state.profilePhoto} style={{marginTop: 20, width: 100, height: 100}}/>
+                            <Image source={this.state.profilePhoto} style={{width: 100, height: 100}}/>
                         </TouchableOpacity>
-                        <View style={{width: "80%", alignItems: 'flex-start', marginLeft: 20}}>
+                        <View style={{width: "80%", alignItems: 'flex-start', flexDirection: "row", marginLeft: 20}}>
+                            <View>
+                            <Text style={styles.jobDetailDesc}>First Name</Text>
                             <TextInput
-                                style={[styles.formField, {width: "79%"}]}
+                                style={[styles.formField, {width: 100, marginRight: 10}]}
                                 placeholder="First Name"
                                 defaultValue={this.state.firstName}
                                 onChangeText={(text) => this.setState({newFirstName: text})}
                             />
+                            </View>
+                            <View>
+                            <Text style={styles.jobDetailDesc}>Last Name</Text>
                              <TextInput
-                                style={[styles.formField, {width: "79%"}]}
+                                style={[styles.formField, {width: 100}]}
                                 placeholder="Last Name"
                                 defaultValue={this.state.lastName}
                                 onChangeText={(text) => this.setState({newLastName: text})}
                              />
+                            </View>
                         </View>
                     </View>
-                    <TextInput
-                        style={styles.formField}
-                        placeholder="Username"
-                        defaultValue={this.state.username}
-                        onChangeText={(text) => this.setState({newUsername: text})}
-                    />
-                    <TextInput
-                        style={styles.formField}
-                        placeholder="Password"
-                        secureTextEntry={true}
-                        defaultValue={this.state.password}
-                        onChangeText={(text) => this.setState({newPassword: text})}
-                    />
-                    <TextInput
-                        style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}
-                        placeholder="Zip Code"
-                        defaultValue={this.state.zipCode}
-                        onChangeText={(text) => this.setState({newZipCode: text})}
-                    />
-                    <TextInput
-                        style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}
-                        placeholder="Vehicle Type"
-                        defaultValue={this.state.vehicle}
-                        onChangeText={(text) => this.setState({newVehicle: text})}
-                    />
-                    <TextInput
-                        style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}
-                        placeholder="Payment Types Accepted"
-                        defaultValue={this.state.payments}
-                        onChangeText={(text) => this.setState({newPayments: text})}
-                    />
+
+                        <View style={{flexDirection: "row", marginTop: 20, width: "90%"}}>
+                            <View style={{width: "50%"}}>
+                                <Text style={styles.jobDetailDesc}>Username</Text>
+                                <TextInput
+                                    style={[styles.formField, {marginRight: 10}]}
+                                    placeholder="Username"
+                                    defaultValue={this.state.username}
+                                    onChangeText={(text) => this.setState({newUsername: text})}
+                                />
+                            </View>
+                            <View style={{width: "50%"}}>
+                                <Text style={styles.jobDetailDesc}>Password</Text>
+                                <TextInput
+                                    style={styles.formField}
+                                    placeholder="Password"
+                                    secureTextEntry={true}
+                                    defaultValue={this.state.password}
+                                    onChangeText={(text) => this.setState({newPassword: text})}
+                                />
+                            </View>
+                        </View>
+
+                        <View style={{width: "90%"}}>
+                            <Text style={styles.jobDetailDesc}>Zip Code</Text>
+                            <TextInput
+                                style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}
+                                placeholder="Zip Code"
+                                defaultValue={this.state.zipCode}
+                                onChangeText={(text) => this.setState({newZipCode: text})}
+                            />
+                        </View>
+
+                        <View style={{width: "90%"}}>
+                            <Text style={styles.jobDetailDesc}>Vehicle Type</Text>
+
+                            <TextInput
+                                style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}
+                                placeholder="Vehicle Type"
+                                defaultValue={this.state.vehicle}
+                                onChangeText={(text) => this.setState({newVehicle: text})}
+                            />
+                        </View>
+
+                        <View style={{width: "90%"}}>
+                            <Text style={styles.jobDetailDesc}>Payment Types Accepted</Text>
+
+                            <TextInput
+                                style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}
+                                placeholder="Payment Types Accepted"
+                                defaultValue={this.state.payments}
+                                onChangeText={(text) => this.setState({newPayments: text})}
+                            />
+                        </View>
 
                     <View style={styles.grayFooter}>
                         <TouchableOpacity
