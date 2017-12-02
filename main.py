@@ -196,7 +196,7 @@ def get_user_profile(user_id):
         raise Unauthorized()
 
     user = users.find_one({'_id': ObjectId(user_id)}, projection={'password': False}) # Don't return the user's password
-    response = jsonify(user)
+    response = json_util.dumps(user)
 
     return response
 

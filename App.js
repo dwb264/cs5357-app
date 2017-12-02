@@ -644,6 +644,7 @@ class RequestFormScreen extends React.Component {
                         description: response.description,
                         submitted: true,
                     })
+                    jobId = (response._id["$oid"]);
                 }
             } else {
                 console.log(JSON.stringify(response));
@@ -823,59 +824,70 @@ class MoverList extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+
             data: []
         }
     }
 
     componentDidMount() {
-        if (jobId) {
-            // Get jobs
-            fetch(api + "/getOffers/" + jobId, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                }, credentials: 'same-origin',
-            }).then(response => {
-                if (response.status === 200) {
-                    response = parseResponseBody(response);
-                    var responsedata = [];
-                    for (var i = 0; i < response.length; i++) {
-                        var userId = response[i]["userId"];
 
-                        // Get the mover's user data
-                        fetch(api + "/profile/" + userId, {
-                            method: 'GET',
-                            headers: {
-                                'Accept': 'application/json',
-                            }, credentials: 'same-origin',
-                        }).then(userResponse => {
-                            if (userResponse.status === 200) {
-                                userResponse = parseResponseBody(userResponse);
-                                response[i]["user"] = userResponse;
-                            } else {
-                                console.log(userResponse);
+        fetch(api + '/jobs', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin',
+        }).then(response => {
+            if (response.status === 200) {
+                response = parseResponseBody(response);
+                if (response) {
+
+                    jobId = (response._id["$oid"]);
+                    // Get jobs
+                    fetch(api + "/getOffers/" + jobId, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                        }, credentials: 'same-origin',
+
+                    }).then(jobResponse => {
+                        if (jobResponse.status === 200) {
+                            jobResponse = parseResponseBody(jobResponse);
+
+                            console.log(jobResponse);
+
+                            var responsedata = [];
+
+                            for (var i = 0; i < jobResponse.length; i++) {
+                                responsedata.push({
+                                    "key": i,
+                                    "values": jobResponse[i]
+                                });
                             }
-                        });
 
-                        responsedata.push({
-                            "key": i,
-                            "values": response[i]
-                        });
-                    }
-                    this.setState({data: responsedata});
-                } else {
-                    throw new Error('Something went wrong on api server!');
+                            this.setState({data: responsedata});
+                            console.log(responsedata);
+                        } else {
+                            throw new Error('Something went wrong on api server!');
+                        }
+                    });
+                    // Get mover info for each job
                 }
-            });
-            // Get mover info for each job
+            } else {
+                console.log(JSON.stringify(response));
+                throw new Error('Something went wrong on api server!');
+            }
+        });
 
-        }
+
     }
 
     render() {
 
         const refreshList = () => {
-            if (jobId) {
+            console.log(this.state.data);
+            if (this.state.jobId !== null) {
                 fetch(api + "/getOffers/" + jobId, {
                     method: 'GET',
                     headers: {
@@ -884,7 +896,16 @@ class MoverList extends React.Component {
                 }).then(response => {
                     if (response.status === 200) {
                         response = parseResponseBody(response);
-                        this.setState({data: response});
+                        var responsedata = [];
+
+                            for (var i = 0; i < response.length; i++) {
+                                responsedata.push({
+                                    "key": i,
+                                    "values": response[i]
+                                });
+                            }
+
+                            this.setState({data: responsedata});
                     } else {
                         throw new Error('Something went wrong on api server!');
                     }
@@ -899,22 +920,18 @@ class MoverList extends React.Component {
                     <Text style={styles.h1}>{this.state.data.length} movers are available{this.state.data.length > 0 ? "!" : " :("}</Text>
                 </View>
 
-                <ScrollView style={{height: 400}}>
+                <ScrollView style={{height: 400, width: "100%"}}>
+
             <FlatList
                 data={this.state.data}
-                style={{width: "100%"}}
+                style={{width: "90%", marginLeft: "5%"}}
 
                 renderItem={({item}) => (
-                    <TouchableOpacity onPress={() => this.props.navigation.navigate("ViewMover", {offerData: item.values})}>
+                    <TouchableOpacity style={{paddingTop: 20, paddingBottom: 20, flexDirection: "row", alignItems: "flex-start", borderBottomWidth: 1, borderBottomColor: "#d8d8d8"}}onPress={() => this.props.navigation.navigate("ViewMover", {offerData: item.values})}>
 
-                    <View style={{width: "90%", paddingTop: 20, paddingBottom: 20, flexDirection: "row", alignItems: "flex-start"}}>
-                        { /* <Image source={item.values.photo} style={{width: 80, height: 80}}/> */ }
-                        <View style={{marginLeft: 16}}>
-                        <Text style={{fontSize: 16, fontWeight: "bold", color: "#333"}}>{item.values.name}</Text>
-                            <Text>Offering ${item.values.price}</Text>
-                            <Text>Starts at {item.values.startTime.getHours()}:{item.values.startTime.getMinutes()}</Text>
-                            <Text>{item.values.rating}/5 Stars</Text>
-                        </View>
+                    <View>
+                            <Text style={{fontSize: 16, color: "#333", marginBottom: 10}}>Offer: ${item.values.price}</Text>
+                            <Text style={{fontSize: 16, color: "#333", marginBottom: 10}}>Start time: {item.values.start_time}</Text>
                     </View>
                     </TouchableOpacity>
                 )}
@@ -967,7 +984,7 @@ class MoverDetailScreen extends React.Component {
 
     componentDidMount() {
         // Get mover's profile
-        // TODO: return the mover's profile data along with job data, so this request will not be necessary
+
         fetch(api + "/profile/" + this.state.offerData.userId, {
             method: 'GET',
             headers: {
@@ -976,6 +993,7 @@ class MoverDetailScreen extends React.Component {
         }).then(response => {
             if (response.status === 200) {
                 response = parseResponseBody(response);
+                console.log(response);
                 this.setState({moverData: response});
             } else {
                 throw new Error('Something went wrong on api server!');
@@ -1004,8 +1022,7 @@ class MoverDetailScreen extends React.Component {
                         textAlign: 'center'
                     }}>{this.state.moverData.first_name + " " + this.state.moverData.last_name}</Text>
                     <Text style={{margin:20, fontSize:16}}>${this.state.offerData.price} |
-                        Start at {this.state.offerData.start_time} |
-                        {this.state.data.rating}/5 Stars</Text>
+                        Start at {this.state.offerData.start_time}</Text>
                     <Text style={{margin:10, fontSize:16}}>Phone: {this.state.moverData.phone}</Text>
                     <Text style={{margin:10, fontSize:16}}>Drives: {this.state.moverData.vehicle}</Text>
                     <Text style={{margin:10, fontSize:16}}>Accepts: {this.state.moverData.payment}</Text>
@@ -1029,7 +1046,7 @@ class MoverDetailScreen extends React.Component {
                     >Offer Accepted!</Text>
                     <Text
                         style={{marginTop:10, margin: 20, marginBottom: 30, fontSize:16, textAlign: 'center', color: "#666"}}
-                    >Don&#8217;t forget to contact {this.state.data.name.split(" ")[0]} to confirm details and be sure to pay when the job is done!</Text>
+                    >Don&#8217;t forget to contact {this.state.moverData.first_name} to confirm details and be sure to pay when the job is done!</Text>
 
                     <Button
                         onPress={() => navigate("Review") }
