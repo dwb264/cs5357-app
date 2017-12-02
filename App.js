@@ -609,7 +609,7 @@ class RequestFormScreen extends React.Component {
             description: '',
             timePickerVisible: false,
             activeField: null,
-            submitted: false,
+            submitted: jobId ? true: false,
 
             startAddressError: '',
             endAddressError: '',
@@ -642,7 +642,6 @@ class RequestFormScreen extends React.Component {
                         endTime: response.end_time,
                         maximumPrice: response.max_price,
                         description: response.description,
-                        submitted: true,
                     })
                     jobId = (response._id["$oid"]);
                 }
@@ -993,8 +992,8 @@ class MoverDetailScreen extends React.Component {
         }).then(response => {
             if (response.status === 200) {
                 response = parseResponseBody(response);
-                console.log(response);
                 this.setState({moverData: response});
+                jobId = null;
             } else {
                 throw new Error('Something went wrong on api server!');
             }
@@ -1005,7 +1004,25 @@ class MoverDetailScreen extends React.Component {
         const { navigate } = this.props.navigation;
 
         const acceptOffer = () => {
-            // TODO: update DB to reflect offer is accepted
+            // update DB to reflect offer is accepted
+
+            var validData = {"job_id": this.state.offerData.jobId, "offerID": this.state.offerData._id["$oid"]};
+
+            fetch(api + "/acceptOffer", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }, credentials: 'same-origin',
+                body: JSON.stringify(validData),
+        }).then(response => {
+            if (response.status === 200) {
+                console.log(response);
+                this.setState({accepted: true});
+            } else {
+                console.log(response);
+                throw new Error('Something went wrong on api server!');
+            }
+        });
         };
 
         return (
@@ -1049,7 +1066,7 @@ class MoverDetailScreen extends React.Component {
                     >Don&#8217;t forget to contact {this.state.moverData.first_name} to confirm details and be sure to pay when the job is done!</Text>
 
                     <Button
-                        onPress={() => navigate("Review") }
+                        onPress={() => navigate("Review", {moverData: this.state.moverData}) }
                         title="Job Done? Leave a Review!"
                         color="#00796B"
                     />
@@ -1062,21 +1079,11 @@ class MoverDetailScreen extends React.Component {
 class ReviewScreen extends React.Component {
 
     constructor(props) {
+
         super(props);
         this.state = {
-            data: {
-                // Should get this from the database
-                "id": 0,
-                "name": "Jeff McMover",
-                "photo": require("./img/jeff.png"),
-                "price": 400,
-                "startTime": new Date("Tue Mar 24 2015 20:00:00 GMT-0400 (EDT)"),
-                "rating": 4.9,
-                "phone": "555-867-5309",
-                "vehicle": "Large box truck",
-                "payment": "Cash, Venmo"
-            },
-            numStars: 0,
+            data: this.props.navigation.state.params.moverData,
+            numStars: null,
         };
 
         this.filledStar = require("./img/filledStar.png");
@@ -1093,24 +1100,45 @@ class ReviewScreen extends React.Component {
         const { navigate } = this.props.navigation;
 
         const recordRating = () => {
-            // TODO: POST rating to DB
-            Alert.alert(
-                'Thank You!',
-                'You have rated ' + this.state.data.name.split(" ")[0] + ' ' + this.state.numStars + ' stars.',
-                [
-                    {text: 'Exit', onPress: () => navigate("Requester")},
-                ],
-                { cancelable: true }
-            );
+
+            if (this.state.numStars !== null) {
+                var validData = {"rating": this.state.numStars, "moverID": this.state.data._id["$oid"] };
+
+                fetch(api + "/review", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }, credentials: 'same-origin',
+                    body: JSON.stringify(validData),
+                }).then(response => {
+                    if (response.status === 201) {
+                        Alert.alert(
+                            'Thank You!',
+                            'You have rated ' + this.state.data.first_name + ' ' + this.state.numStars + ' stars.',
+                            [
+                                {text: 'Exit', onPress: () => navigate("Requester")},
+                            ],
+                            { cancelable: true }
+                        );
+                    } else {
+                        console.log(response);
+                        throw new Error('Something went wrong on api server!');
+                    }
+                });
+
+            } else {
+                alert("Please select a star rating");
+            }
+
+
         };
 
         return (
             <View style={{flex: 1, justifyContent: "space-between"}}>
                 <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff"}}>
                     <Text style={[styles.h1, {textAlign: "center"}]}>Review Your Mover</Text>
-                    <Image source={this.state.data.photo} style={{marginTop: 20, width: 100, height: 100}}/>
-                    <Text style={[styles.h1, {textAlign: "center"}]}>{this.state.data.name}</Text>
-                    <Text style={{margin:20, fontSize:16}}>Please rate {this.state.data.name.split(" ")[0]} out of 5 stars.</Text>
+                    <Text style={[styles.h1, {textAlign: "center"}]}>{this.state.data.first_name} {this.state.data.last_name}</Text>
+                    <Text style={{margin:20, fontSize:16}}>Please rate {this.state.data.first_name} out of 5 stars.</Text>
                     <View style={{flexDirection: "row"}}>
                         <TouchableHighlight onPress={() => this.setState({numStars: 1})} underlayColor="#fff">
                             <Image
@@ -1167,7 +1195,6 @@ class ReviewScreen extends React.Component {
         );
     }
 }
-
 
 /*--Profile Screen--*/
 // Where user can update their profile. Visible to movers and requesters.
@@ -1433,7 +1460,6 @@ class ProfileScreen extends React.Component {
         );
     }
 }
-
 
 /* -- Mover Screens --*/
 // These screens are only visible to movers:
@@ -1744,7 +1770,6 @@ class JobDetailScreen extends React.Component {
         );
     }
 }
-
 
 // StackNavigator: a registry of all screens in the app
 // Requester and mover both have a nested TabNavigator that contains their screens
