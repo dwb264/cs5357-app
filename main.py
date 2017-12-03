@@ -11,7 +11,11 @@ from authy.api import AuthyApiClient
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 import datetime
-#from mongoengine import *
+from PIL import Image
+import base64
+from cStringIO import StringIO
+import simplejson as json
+import io
 
 
 # This defines a Flask application
@@ -78,7 +82,16 @@ def add_new_user():
     if body.get('first_name') is None:
         raise BadRequest('missing first name')
     if body.get('last_name') is None:
-        raise BadRequest('missing first name')
+        raise BadRequest('missing last name')
+    if body.get('zipcode') is None:
+        raise BadRequest('missing zip code')
+    else:
+        zipcode = body.get('zipcode')
+        if len(zipcode)!=5 or zipcode.isdigit()==False:
+            raise BadRequest("Invalid zip code")
+        zipcode = int(zipcode)
+    if body.get('payment') is None:
+        raise BadRequest('missing payment type')
     if body.get("phone") is None:
         phone = None
     else:
@@ -100,6 +113,11 @@ def add_new_user():
         if body.get("vehicle") is None:
             raise BadRequest("Missing vehicle details")
 
+    if body.get("photo") is None:
+        raise BadRequest("Missing photo")
+    else:
+        data = imageStorage(body.get("photo"))
+
     password_hash = security.generate_password_hash(body.get('password'))
 
     newUser = { "type": body.get("type"),
@@ -111,6 +129,7 @@ def add_new_user():
                 "payment":body.get("payment"),
                 "phone": phone,
                 "vehicle": body.get("vehicle"),
+                "photo": data,
                 "verified_phone": False}    
 
     if users.find_one({"username": body.get("username")}):
@@ -123,6 +142,18 @@ def add_new_user():
     session['user'] = serializable_user_obj
 
     return Response(status=201)
+
+def imageStorage(photo):
+    image = Image.open(photo)
+    findExtIndex = photo[::-1].find('.')
+    ext = photo[::-1][:findExtIndex][::-1]
+    #manipulate image size according to the requirement
+    image.thumbnail((100, 100), Image.ANTIALIAS)
+    output = StringIO()
+    image.save(output, format=ext)
+    im_data = output.getvalue()
+    data = base64.b64encode(im_data)
+    return data
 
 
 @app.route('/profile', methods = ['PUT'])
@@ -196,6 +227,13 @@ def get_user_profile(user_id):
     response = json_util.dumps(user)
 
     return response
+
+#the data passed should come from database - check the earlier implementation of the API
+def retriveImage(data):
+    decodedData = base64.b64decode(data)
+    buf = io.BytesIO(decodedData)
+    img = Image.open(buf)
+    return img
 
 
 @app.route('/verify', methods = ['POST'])
