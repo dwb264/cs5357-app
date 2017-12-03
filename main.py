@@ -41,6 +41,7 @@ DB_USER = "admin"
 DB_PASS = "Hello7777"
 
 connection = MongoClient(DB_HOST, DB_PORT)
+
 db = connection[DB_NAME]
 db.authenticate(DB_USER, DB_PASS)
 
@@ -170,12 +171,9 @@ def update():
     if body.get("vehicle"):
         users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'vehicle':body.get("vehicle")}})
 
-    user = users.find_one({'username': session.get('user')['username']})
+    serializable_user_obj = json_util.dumps(session.get('user'))
 
-    serializable_user_obj = json.loads(json_util.dumps(user))
-    session['user'] = serializable_user_obj
-
-    return Response(200)
+    return Response(serializable_user_obj, 200)
 
 
     ##TODO: implement update method
@@ -186,6 +184,17 @@ def get_profile():
         raise Unauthorized()
 
     response = jsonify(session.get('user'))
+    return response
+
+# Get a specific user's profile
+@app.route('/profile/<user_id>', methods = ['GET'])
+def get_user_profile(user_id):
+    if session.get('user') is None:
+        raise Unauthorized()
+
+    user = users.find_one({'_id': ObjectId(user_id)}, projection={'password': False}) # Don't return the user's password
+    response = json_util.dumps(user)
+
     return response
 
 
@@ -317,6 +326,7 @@ def create_job():
 
     # Insert into the mongo collection
     res = jobs.insert_one(job_record)
+
     return Response(str(res.inserted_id), 200)
 
 @app.route('/jobs', methods=['GET'])
@@ -324,8 +334,13 @@ def get_jobs():
     if session.get('user') is None:
         raise Unauthorized()
 
-    all_jobs = json_util.dumps(jobs.find({}))
-    return Response(all_jobs, 200)
+    if session.get('user')['type'] == "requester":
+        job = jobs.find_one({'user': session['user']['_id']['$oid'], 'job_status': 'Open'})
+        res = json_util.dumps(job)
+        return Response(res, 200) # will return None if the user has no open job, this is ok
+    else:
+        all_jobs = json_util.dumps(jobs.find({}))
+        return Response(all_jobs, 200)
 
 @app.route('/jobs/<jobid>', methods=['GET'])
 def job_desc(jobid):
@@ -435,21 +450,12 @@ def getOffers(job_id):
     if session.get('user') is None:
         raise Unauthorized()
 
-    job = jobs.find_one({"_id":ObjectId(job_id)})
+    job = jobs.find_one({"_id": ObjectId(job_id)})
 
     if job is None:
         raise BadRequest("invalid Job ID")
 
-    #if job["user"] != session.get('user')["_id"]["$oid"]:
-     #   raise Unauthorized()
-
-    user = users.find_one({"_id": ObjectId(job["user"])})
-    offer = offers.find_one({'jobId': job_id})
-
-    offer.update({"user": user})
-
-    return Response(json_util.dumps(offer), 200)
-
+    return Response(json_util.dumps(offers.find({'jobId': job_id})), 200)
 
 
 @app.route('/acceptOffer', methods=['POST'])
@@ -839,4 +845,4 @@ def acceptOffer():
 # When run in GCP, Gunicorn is used instead (see entrypoint in app.yaml) to
 # Access the Flack app via WSGI
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=8080, debug=True)
+    app.run(host='127.0.0.1', port=8081, debug=True)

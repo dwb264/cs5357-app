@@ -4,8 +4,7 @@ import { StackNavigator, TabNavigator, TabView} from 'react-navigation';
 import DateTimePicker from 'react-native-modal-datetime-picker';
 
 var userType; // either mover or requester
-var validatedPhone = false; // keep track of whether phone has been validated
-var api = "http://127.0.0.1:8080";
+var api = "http://127.0.0.1:8081";
 var jobId = null; // Current job id; null if no current job
 
 const sanitizeInput = (str) => {
@@ -14,6 +13,7 @@ const sanitizeInput = (str) => {
 };
 
 const validateStr = (label, str, maxLen) => {
+
     str = sanitizeInput(str);
     if (str == "") {
         return label + " cannot be blank";
@@ -170,6 +170,7 @@ class RegisterScreen extends React.Component {
                 lastNameError: validateStr("Last name", this.state.lastName, 100),
                 usernameError: validateStr("Username", this.state.username, 50),
                 passwordError: validateStr("Password", this.state.password, 100),
+
             }, () => {
 
                 if (isMover) {
@@ -177,7 +178,7 @@ class RegisterScreen extends React.Component {
                         zipcodeError: validateInt("Zipcode", this.state.zipcode, 5),
                         vehicleError: validateStr("Vehicle", this.state.vehicle, 100),
                         paymentError: validateStr("Payment", this.state.payment, 50),
-                    });
+                    })
                 }
 
                 if (this.state.firstNameError == ""
@@ -198,7 +199,7 @@ class RegisterScreen extends React.Component {
                         "zipcode": this.state.zipcode,
                         "vehicle": this.state.vehicle,
                         "payment": this.state.payment,
-                    }
+                    };
 
                     // POST new user to database
 
@@ -543,10 +544,8 @@ class EnterCodeScreen extends React.Component {
                     }).then(response => {
                         if (response.status === 200) {
                             if (userType == 'requester') {
-                                validatedPhone = true;
                                 navigate('Requester');
                             } else {
-                                validatedPhone = true;
                                 navigate('Mover');
                             }
                         } else {
@@ -612,7 +611,7 @@ class RequestFormScreen extends React.Component {
             description: '',
             timePickerVisible: false,
             activeField: null,
-            submitted: false,
+            submitted:false,
 
             startAddressError: '',
             endAddressError: '',
@@ -623,6 +622,37 @@ class RequestFormScreen extends React.Component {
 
             allErrors: '',
         };
+    }
+
+    componentDidMount() {
+        // See if the user has a currently open job, and if so, load it
+        fetch(api + '/jobs', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin',
+        }).then(response => {
+            if (response.status === 200) {
+                response = parseResponseBody(response);
+                if (response) {
+                    this.setState({
+                        startAddress: response.start_address,
+                        endAddress: response.end_address,
+                        startTime: response.start_time,
+                        endTime: response.end_time,
+                        maximumPrice: response.max_price,
+                        description: response.description,
+                        submitted: true,
+                    })
+                    jobId = (response._id["$oid"]);
+                }
+            } else {
+                console.log(JSON.stringify(response));
+                throw new Error('Something went wrong on api server!');
+            }
+        });
     }
 
     render() {
@@ -796,39 +826,75 @@ class MoverList extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+
             data: []
         }
     }
 
     componentDidMount() {
-        if (jobId) {
-            fetch(api + "/getOffers/" + jobId, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                }, credentials: 'same-origin',
-            }).then(response => {
-                if (response.status === 200) {
-                    response = parseResponseBody(response);
-                    responsedata = [];
-                    for (var i = 0; i < response.length; i++) {
-                        responsedata.push({
-                            "key": i,
-                            "values": response[i]
-                        });
-                    }
-                    this.setState({data: responsedata});
-                } else {
-                    throw new Error('Something went wrong on api server!');
+
+        // Check if the requester has an open job
+
+        fetch(api + '/jobs', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin',
+        }).then(response => {
+            if (response.status === 200) {
+                response = parseResponseBody(response);
+
+                // If there is an open job, get the offers
+
+                if (response) {
+
+                    jobId = (response._id["$oid"]);
+                    // Get jobs
+                    fetch(api + "/getOffers/" + jobId, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                        }, credentials: 'same-origin',
+
+                    }).then(jobResponse => {
+                        if (jobResponse.status === 200) {
+                            jobResponse = parseResponseBody(jobResponse);
+
+                            console.log(jobResponse);
+
+                            var responsedata = [];
+
+                            for (var i = 0; i < jobResponse.length; i++) {
+                                responsedata.push({
+                                    "key": i,
+                                    "values": jobResponse[i]
+                                });
+                            }
+
+                            this.setState({data: responsedata});
+                            console.log(responsedata);
+                        } else {
+                            throw new Error('Something went wrong on api server!');
+                        }
+                    });
+                    // Get mover info for each job
                 }
-            });
-        }
+            } else {
+                console.log(JSON.stringify(response));
+                throw new Error('Something went wrong on api server!');
+            }
+        });
+
+
     }
 
     render() {
 
         const refreshList = () => {
-            if (jobId) {
+            console.log(this.state.data);
+            if (jobId !== null) {
                 fetch(api + "/getOffers/" + jobId, {
                     method: 'GET',
                     headers: {
@@ -837,7 +903,16 @@ class MoverList extends React.Component {
                 }).then(response => {
                     if (response.status === 200) {
                         response = parseResponseBody(response);
-                        this.setState({data: response});
+                        var responsedata = [];
+
+                            for (var i = 0; i < response.length; i++) {
+                                responsedata.push({
+                                    "key": i,
+                                    "values": response[i]
+                                });
+                            }
+
+                            this.setState({data: responsedata});
                     } else {
                         throw new Error('Something went wrong on api server!');
                     }
@@ -849,25 +924,21 @@ class MoverList extends React.Component {
             <View style={styles.containerTop}>
 
                 <View style={styles.grayHeader}>
-                    <Text style={styles.h1}>{this.state.data.length} movers are available{this.state.data.length > 0 ? "!" : " :("}</Text>
+                    <Text style={styles.h1}>{this.state.data.length} mover(s) available{this.state.data.length > 0 ? "!" : " :("}</Text>
                 </View>
 
-                <ScrollView style={{height: 400}}>
+                <ScrollView style={{height: 400, width: "100%"}}>
+
             <FlatList
                 data={this.state.data}
-                style={{width: "100%"}}
+                style={{width: "90%", marginLeft: "5%"}}
 
                 renderItem={({item}) => (
-                    <TouchableOpacity onPress={() => this.props.navigation.navigate("ViewMover", {offerData: item.values})}>
+                    <TouchableOpacity style={{paddingTop: 20, paddingBottom: 20, flexDirection: "row", alignItems: "flex-start", borderBottomWidth: 1, borderBottomColor: "#d8d8d8"}}onPress={() => this.props.navigation.navigate("ViewMover", {offerData: item.values})}>
 
-                    <View style={{width: "90%", paddingTop: 20, paddingBottom: 20, flexDirection: "row", alignItems: "flex-start"}}>
-                        { /* <Image source={item.values.photo} style={{width: 80, height: 80}}/> */ }
-                        <View style={{marginLeft: 16}}>
-                        <Text style={{fontSize: 16, fontWeight: "bold", color: "#333"}}>{item.values.name}</Text>
-                            <Text>Offering ${item.values.price}</Text>
-                            <Text>Starts at {item.values.startTime.getHours()}:{item.values.startTime.getMinutes()}</Text>
-                            <Text>{item.values.rating}/5 Stars</Text>
-                        </View>
+                    <View>
+                            <Text style={{fontSize: 16, color: "#333", marginBottom: 10}}>Offer: ${item.values.price}</Text>
+                            <Text style={{fontSize: 16, color: "#333", marginBottom: 10}}>Start time: {item.values.start_time}</Text>
                     </View>
                     </TouchableOpacity>
                 )}
@@ -920,7 +991,7 @@ class MoverDetailScreen extends React.Component {
 
     componentDidMount() {
         // Get mover's profile
-        // TODO: return the mover's profile data along with job data, so this request will not be necessary
+
         fetch(api + "/profile/" + this.state.offerData.userId, {
             method: 'GET',
             headers: {
@@ -930,6 +1001,7 @@ class MoverDetailScreen extends React.Component {
             if (response.status === 200) {
                 response = parseResponseBody(response);
                 this.setState({moverData: response});
+                jobId = null;
             } else {
                 throw new Error('Something went wrong on api server!');
             }
@@ -940,7 +1012,25 @@ class MoverDetailScreen extends React.Component {
         const { navigate } = this.props.navigation;
 
         const acceptOffer = () => {
-            // TODO: update DB to reflect offer is accepted
+            // update DB to reflect offer is accepted
+
+            var validData = {"job_id": this.state.offerData.jobId, "offerID": this.state.offerData._id["$oid"]};
+
+            fetch(api + "/acceptOffer", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }, credentials: 'same-origin',
+                body: JSON.stringify(validData),
+        }).then(response => {
+            if (response.status === 200) {
+                console.log(response);
+                this.setState({accepted: true});
+            } else {
+                console.log(response);
+                throw new Error('Something went wrong on api server!');
+            }
+        });
         };
 
         return (
@@ -957,8 +1047,7 @@ class MoverDetailScreen extends React.Component {
                         textAlign: 'center'
                     }}>{this.state.moverData.first_name + " " + this.state.moverData.last_name}</Text>
                     <Text style={{margin:20, fontSize:16}}>${this.state.offerData.price} |
-                        Start at {this.state.offerData.start_time} |
-                        {this.state.data.rating}/5 Stars</Text>
+                        Start at {this.state.offerData.start_time}</Text>
                     <Text style={{margin:10, fontSize:16}}>Phone: {this.state.moverData.phone}</Text>
                     <Text style={{margin:10, fontSize:16}}>Drives: {this.state.moverData.vehicle}</Text>
                     <Text style={{margin:10, fontSize:16}}>Accepts: {this.state.moverData.payment}</Text>
@@ -982,10 +1071,10 @@ class MoverDetailScreen extends React.Component {
                     >Offer Accepted!</Text>
                     <Text
                         style={{marginTop:10, margin: 20, marginBottom: 30, fontSize:16, textAlign: 'center', color: "#666"}}
-                    >Don&#8217;t forget to contact {this.state.data.name.split(" ")[0]} to confirm details and be sure to pay when the job is done!</Text>
+                    >Don&#8217;t forget to contact {this.state.moverData.first_name} to confirm details and be sure to pay when the job is done!</Text>
 
                     <Button
-                        onPress={() => navigate("Review") }
+                        onPress={() => navigate("Review", {moverData: this.state.moverData}) }
                         title="Job Done? Leave a Review!"
                         color="#00796B"
                     />
@@ -998,21 +1087,11 @@ class MoverDetailScreen extends React.Component {
 class ReviewScreen extends React.Component {
 
     constructor(props) {
+
         super(props);
         this.state = {
-            data: {
-                // Should get this from the database
-                "id": 0,
-                "name": "Jeff McMover",
-                "photo": require("./img/jeff.png"),
-                "price": 400,
-                "startTime": new Date("Tue Mar 24 2015 20:00:00 GMT-0400 (EDT)"),
-                "rating": 4.9,
-                "phone": "555-867-5309",
-                "vehicle": "Large box truck",
-                "payment": "Cash, Venmo"
-            },
-            numStars: 0,
+            data: this.props.navigation.state.params.moverData,
+            numStars: null,
         };
 
         this.filledStar = require("./img/filledStar.png");
@@ -1029,24 +1108,45 @@ class ReviewScreen extends React.Component {
         const { navigate } = this.props.navigation;
 
         const recordRating = () => {
-            // TODO: POST rating to DB
-            Alert.alert(
-                'Thank You!',
-                'You have rated ' + this.state.data.name.split(" ")[0] + ' ' + this.state.numStars + ' stars.',
-                [
-                    {text: 'Exit', onPress: () => navigate("Requester")},
-                ],
-                { cancelable: true }
-            );
+
+            if (this.state.numStars !== null) {
+                var validData = {"rating": this.state.numStars, "moverID": this.state.data._id["$oid"] };
+
+                fetch(api + "/review", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }, credentials: 'same-origin',
+                    body: JSON.stringify(validData),
+                }).then(response => {
+                    if (response.status === 201) {
+                        Alert.alert(
+                            'Thank You!',
+                            'You have rated ' + this.state.data.first_name + ' ' + this.state.numStars + ' stars.',
+                            [
+                                {text: 'Exit', onPress: () => navigate("Requester")},
+                            ],
+                            { cancelable: true }
+                        );
+                    } else {
+                        console.log(response);
+                        throw new Error('Something went wrong on api server!');
+                    }
+                });
+
+            } else {
+                alert("Please select a star rating");
+            }
+
+
         };
 
         return (
             <View style={{flex: 1, justifyContent: "space-between"}}>
                 <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff"}}>
                     <Text style={[styles.h1, {textAlign: "center"}]}>Review Your Mover</Text>
-                    <Image source={this.state.data.photo} style={{marginTop: 20, width: 100, height: 100}}/>
-                    <Text style={[styles.h1, {textAlign: "center"}]}>{this.state.data.name}</Text>
-                    <Text style={{margin:20, fontSize:16}}>Please rate {this.state.data.name.split(" ")[0]} out of 5 stars.</Text>
+                    <Text style={[styles.h1, {textAlign: "center"}]}>{this.state.data.first_name} {this.state.data.last_name}</Text>
+                    <Text style={{margin:20, fontSize:16}}>Please rate {this.state.data.first_name} out of 5 stars.</Text>
                     <View style={{flexDirection: "row"}}>
                         <TouchableHighlight onPress={() => this.setState({numStars: 1})} underlayColor="#fff">
                             <Image
@@ -1104,7 +1204,6 @@ class ReviewScreen extends React.Component {
     }
 }
 
-
 /*--Profile Screen--*/
 // Where user can update their profile. Visible to movers and requesters.
 class ProfileScreen extends React.Component {
@@ -1124,6 +1223,7 @@ class ProfileScreen extends React.Component {
             zipCode: "",
             vehicle: "",
             payments: "",
+            validatedPhone: false,
 
             // If the user changes anything, it will be stored here
             newFirstName: null,
@@ -1133,7 +1233,15 @@ class ProfileScreen extends React.Component {
             newPassword: null,
             newZipCode: null,
             newVehicle: null,
-            newPayments: null
+            newPayments: null,
+
+            firstNameError: '',
+            lastNameError: '',
+            usernameError: '',
+            passwordError: '',
+            zipcodeError: '',
+            vehicleError: '',
+            paymentError: '',
         }
     }
 
@@ -1154,8 +1262,17 @@ class ProfileScreen extends React.Component {
                         zipCode: response.zipcode,
                         vehicle: response.vehicle,
                         payments: response.payment,
+                        validatedPhone: response["verified_phone"],
+
+                        newFirstName: response.first_name,
+                        newLastName: response.last_name,
+                        newUsername: response.username,
+                        newPassword: response.password,
+                        newZipCode: response.zipcode,
+                        newVehicle: response.vehicle,
+                        newPayments: response.payment,
                 });
-                validatedPhone = response["verified_phone"];
+
 
             } else {
                 throw new Error('Something went wrong on api server!');
@@ -1169,19 +1286,85 @@ class ProfileScreen extends React.Component {
 
         const updateProfile = () => {
             // TODO: Validate form and post data to DB
-            return true;
-        };
+            var validData = {};
+
+            this.setState({
+                firstNameError: validateStr("First name", this.state.newFirstName, 100),
+                lastNameError: validateStr("Last name", this.state.newLastName, 100),
+                usernameError: validateStr("Username", this.state.newUsername, 50),
+                zipcodeError: validateInt("Zipcode", this.state.newZipCode, 5),
+                vehicleError: validateStr("Vehicle", this.state.newVehicle, 100),
+                paymentError: validateStr("Payment", this.state.newPayments, 100),
+            }, () => {
+
+                if (this.state.firstNameError == ""
+                    && this.state.lastNameError == ""
+                    && this.state.usernameError == ""
+                    && this.state.zipcodeError == ""
+                    && this.state.vehicleError == ""
+                    && this.state.paymentError == ""
+                ) {
+
+                    const validData = {
+                        "type": userType,
+                        "first_name": this.state.newFirstName,
+                        "last_name": this.state.newLastName,
+                        "username": this.state.newUsername,
+                        "zipcode": this.state.newZipCode,
+                        "vehicle": this.state.newVehicle,
+                        "payment": this.state.newPayments,
+                    }
+
+                    fetch(api + "/profile", {
+                        method: 'PUT',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }, credentials: 'same-origin',
+                        body: JSON.stringify(validData),
+                    }).then(response => {
+                        if (response.status === 200) {
+                            response = parseResponseBody(response);
+                            this.setState({
+                                firstName: response.first_name,
+                                lastName: response.last_name,
+                                username: response.username,
+                                zipCode: response.zipcode,
+                                vehicle: response.vehicle,
+                                payments: response.payment,
+                            });
+
+                        } else {
+                            throw new Error('Something went wrong on api server!');
+                        }
+                    });
+                }
+            });
+        }
 
         const cancelUpdateProfile = () => {
-            // TODO: Revert all fields to original state
-            this.setState({
-                firstName: this.state.first_name,
-                lastName: this.state.last_name,
-                username: this.state.username,
-                password: this.state.password,
-                zipCode: this.state.zipcode,
-                vehicle: this.state.vehicle,
-                payments: this.state.payment,
+            // Revert all fields to original state
+            fetch(api + "/profile", {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                }, credentials: 'same-origin',
+            }).then(response => {
+                if (response.status === 200) {
+                    response = parseResponseBody(response);
+                    this.setState({
+                        firstName: response.first_name,
+                        lastName: response.last_name,
+                        username: response.username,
+                        password: response.password,
+                        zipCode: response.zipcode,
+                        vehicle: response.vehicle,
+                        payments: response.payment,
+                    });
+
+                } else {
+                    throw new Error('Something went wrong on api server!');
+                }
             });
         };
 
@@ -1199,65 +1382,96 @@ class ProfileScreen extends React.Component {
                         </View>
 
                     <Text
-                        style={{display: validatedPhone ? 'none' : 'flex',
+                        style={{display: this.state.validatedPhone ? 'none' : 'flex',
                             width: "100%",
                             backgroundColor: "yellow",
                             padding: 5,
                             marginTop: 0,
-                            textAlign: 'center'
+                            textAlign: 'center',
                         }}
                         onPress={() => navigate('GetCode')}
                     >Phone not yet validated. Tap here to validate phone</Text>
-                    <View style={{flex:0, flexDirection: "row", justifyContent: "space-between", width: "90%"}}>
+                    <View style={{flex:0, flexDirection: "row", justifyContent: "space-between", width: "90%", marginTop: 20}}>
                         <TouchableOpacity onPress={() => updateProfilePhoto()}>
-                            <Image source={this.state.profilePhoto} style={{marginTop: 20, width: 100, height: 100}}/>
+                            <Image source={this.state.profilePhoto} style={{width: 100, height: 100}}/>
                         </TouchableOpacity>
-                        <View style={{width: "80%", alignItems: 'flex-start', marginLeft: 20}}>
+                        <View style={{width: "80%", alignItems: 'flex-start', flexDirection: "row", marginLeft: 20}}>
+                            <View>
+                            <Text style={styles.jobDetailDesc}>First Name</Text>
                             <TextInput
-                                style={[styles.formField, {width: "79%"}]}
+                                style={[styles.formField, {width: 100, marginRight: 10}]}
                                 placeholder="First Name"
                                 defaultValue={this.state.firstName}
                                 onChangeText={(text) => this.setState({newFirstName: text})}
                             />
+                                <Text style={styles.errorText}>{this.state.firstNameError}</Text>
+                            </View>
+                            <View>
+                            <Text style={styles.jobDetailDesc}>Last Name</Text>
                              <TextInput
-                                style={[styles.formField, {width: "79%"}]}
+                                style={[styles.formField, {width: 100}]}
                                 placeholder="Last Name"
                                 defaultValue={this.state.lastName}
                                 onChangeText={(text) => this.setState({newLastName: text})}
                              />
+                                <Text style={styles.errorText}>{this.state.lastNameError}</Text>
+                            </View>
                         </View>
                     </View>
-                    <TextInput
-                        style={styles.formField}
-                        placeholder="Username"
-                        defaultValue={this.state.username}
-                        onChangeText={(text) => this.setState({newUsername: text})}
-                    />
-                    <TextInput
-                        style={styles.formField}
-                        placeholder="Password"
-                        secureTextEntry={true}
-                        defaultValue={this.state.password}
-                        onChangeText={(text) => this.setState({newPassword: text})}
-                    />
-                    <TextInput
-                        style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}
-                        placeholder="Zip Code"
-                        defaultValue={this.state.zipCode}
-                        onChangeText={(text) => this.setState({newZipCode: text})}
-                    />
-                    <TextInput
-                        style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}
-                        placeholder="Vehicle Type"
-                        defaultValue={this.state.vehicle}
-                        onChangeText={(text) => this.setState({newVehicle: text})}
-                    />
-                    <TextInput
-                        style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}
-                        placeholder="Payment Types Accepted"
-                        defaultValue={this.state.payments}
-                        onChangeText={(text) => this.setState({newPayments: text})}
-                    />
+
+                        <View style={{flexDirection: "row", marginTop: 20, width: "90%"}}>
+                            <View style={{width: "50%"}}>
+                                <Text style={styles.jobDetailDesc}>Username</Text>
+                                <TextInput
+                                    style={[styles.formField, {marginRight: 10}]}
+                                    placeholder="Username"
+                                    defaultValue={this.state.username}
+                                    onChangeText={(text) => this.setState({newUsername: text})}
+                                /><Text style={styles.errorText}>{this.state.usernameError}</Text>
+                            </View>
+                            <View style={{width: "50%"}}>
+                                <Text style={styles.jobDetailDesc}>Password</Text>
+                                <TextInput
+                                    style={styles.formField}
+                                    placeholder="Password"
+                                    secureTextEntry={true}
+                                    defaultValue={this.state.password}
+                                    onChangeText={(text) => this.setState({newPassword: text})}
+                                /><Text style={styles.errorText}>{this.state.passwordError}</Text>
+                            </View>
+                        </View>
+
+                        <View style={{width: "90%", display: isMover ? 'flex' : 'none'}}>
+                            <Text style={styles.jobDetailDesc}>Zip Code</Text>
+                            <TextInput
+                                style={styles.formField}
+                                placeholder="Zip Code"
+                                defaultValue={this.state.zipCode}
+                                onChangeText={(text) => this.setState({newZipCode: text})}
+                            /><Text style={styles.errorText}>{this.state.zipcodeError}</Text>
+                        </View>
+
+                        <View style={{width: "90%", display: isMover ? 'flex' : 'none'}}>
+                            <Text style={styles.jobDetailDesc}>Vehicle Type</Text>
+
+                            <TextInput
+                                style={styles.formField}
+                                placeholder="Vehicle Type"
+                                defaultValue={this.state.vehicle}
+                                onChangeText={(text) => this.setState({newVehicle: text})}
+                            /><Text style={styles.errorText}>{this.state.vehicleError}</Text>
+                        </View>
+
+                        <View style={{width: "90%", display: isMover ? 'flex' : 'none'}}>
+                            <Text style={styles.jobDetailDesc}>Payment Types Accepted</Text>
+
+                            <TextInput
+                                style={styles.formField}
+                                placeholder="Payment Types Accepted"
+                                defaultValue={this.state.payments}
+                                onChangeText={(text) => this.setState({newPayments: text})}
+                            /><Text style={styles.errorText}>{this.state.paymentError}</Text>
+                        </View>
 
                     <View style={styles.grayFooter}>
                         <TouchableOpacity
@@ -1272,9 +1486,8 @@ class ProfileScreen extends React.Component {
                 </View>
                 </ScrollView>
         );
-    }
+    };
 }
-
 
 /* -- Mover Screens --*/
 // These screens are only visible to movers:
@@ -1406,6 +1619,8 @@ class JobDetailScreen extends React.Component {
             timeError: "",
             amountError: "",
 
+            headerphoto: require("./img/boxes.jpg")
+
         }
     }
 
@@ -1425,7 +1640,6 @@ class JobDetailScreen extends React.Component {
             }
         });
 
-
         fetch(api + "/getOffers/" + this.state.jobId, {
             method: 'GET',
             headers: {
@@ -1434,6 +1648,7 @@ class JobDetailScreen extends React.Component {
         }).then(response => {
             if (response.status === 200) {
                 response = parseResponseBody(response);
+                console.log(response);
                 var offers = [];
                 if (response.length > 0) {
                     for (var i = 0; i < response.length; i++) {
@@ -1495,7 +1710,7 @@ class JobDetailScreen extends React.Component {
 
                 <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff"}}>
 
-                    { /*<Image source={this.state.data.photo} style={{width: "100%", height:100}}/> */ }
+                    <Image source={this.state.headerphoto} style={{width: "100%", height:100}}/>
 
                     <View style={styles.jobDetailRow}>
 
@@ -1576,6 +1791,7 @@ class JobDetailScreen extends React.Component {
                     <Text
                         style={{margin:10, fontSize:30, color: "#00796B"}}
                     >Offer placed!</Text>
+                    <Text>You have offered to do this job at {this.state.offerTime} for ${this.state.offerAmount}.</Text>
                     <Text
                         style={{marginTop:10, margin: 20, marginBottom: 30, fontSize:16, textAlign: 'center', color: "#666"}}
                     >We will let you know if the requester accepts your offer.</Text>
@@ -1585,7 +1801,6 @@ class JobDetailScreen extends React.Component {
         );
     }
 }
-
 
 // StackNavigator: a registry of all screens in the app
 // Requester and mover both have a nested TabNavigator that contains their screens
