@@ -170,10 +170,16 @@ class RegisterScreen extends React.Component {
                 lastNameError: validateStr("Last name", this.state.lastName, 100),
                 usernameError: validateStr("Username", this.state.username, 50),
                 passwordError: validateStr("Password", this.state.password, 100),
-                zipcodeError: validateInt("Zipcode", this.state.zipcode, 5),
-                vehicleError: validateStr("Vehicle", this.state.vehicle, 100),
-                paymentError: validateStr("Payment", this.state.payment, 50),
+
             }, () => {
+
+                if (isMover) {
+                    this.setState({
+                        zipcodeError: validateInt("Zipcode", this.state.zipcode, 5),
+                        vehicleError: validateStr("Vehicle", this.state.vehicle, 100),
+                        paymentError: validateStr("Payment", this.state.payment, 50),
+                    })
+                }
 
                 if (this.state.firstNameError == ""
                     && this.state.lastNameError == ""
@@ -1256,6 +1262,7 @@ class ProfileScreen extends React.Component {
                         zipCode: response.zipcode,
                         vehicle: response.vehicle,
                         payments: response.payment,
+                        validatedPhone: response["verified_phone"],
 
                         newFirstName: response.first_name,
                         newLastName: response.last_name,
@@ -1265,7 +1272,7 @@ class ProfileScreen extends React.Component {
                         newVehicle: response.vehicle,
                         newPayments: response.payment,
                 });
-                validatedPhone = response["verified_phone"];
+
 
             } else {
                 throw new Error('Something went wrong on api server!');
