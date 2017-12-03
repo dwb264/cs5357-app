@@ -217,6 +217,14 @@ def get_profile():
     response = jsonify(session.get('user'))
     return response
 
+#the data passed should come from database - check the earlier implementation of the API
+def retriveImage(data):
+    decodedData = base64.b64decode(data)
+    buf = io.BytesIO(decodedData)
+    img = Image.open(buf)
+    return img
+
+
 # Get a specific user's profile
 @app.route('/profile/<user_id>', methods = ['GET'])
 def get_user_profile(user_id):
@@ -227,13 +235,6 @@ def get_user_profile(user_id):
     response = json_util.dumps(user)
 
     return response
-
-#the data passed should come from database - check the earlier implementation of the API
-def retriveImage(data):
-    decodedData = base64.b64decode(data)
-    buf = io.BytesIO(decodedData)
-    img = Image.open(buf)
-    return img
 
 
 @app.route('/verify', methods = ['POST'])
