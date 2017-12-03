@@ -17,6 +17,7 @@ from cStringIO import StringIO
 import simplejson as json
 import io
 
+
 # This defines a Flask application
 app = Flask(__name__)
 
@@ -44,6 +45,7 @@ DB_USER = "admin"
 DB_PASS = "Hello7777"
 
 connection = MongoClient(DB_HOST, DB_PORT)
+
 db = connection[DB_NAME]
 db.authenticate(DB_USER, DB_PASS)
 
@@ -71,6 +73,8 @@ def add_new_user():
 
     # Check that the request body has `username` and `password` properties
     body = request.get_json()
+    if body.get('type') is None:
+        raise BadRequest('missing user type')
     if body.get('username') is None:
         raise BadRequest('missing username property')
     if body.get('password') is None:
@@ -96,10 +100,18 @@ def add_new_user():
             raise BadRequest("Invalid phone number")
         phone = int(phone)
 
-    if body.get('type') is None:
-        raise BadRequest('missing user type')
-    if body.get("vehicle") is None:
-        raise BadRequest("Missing vehicle details")
+    if body.get('type') is 'mover': # Certain properties only required for mover
+        if body.get('zipcode') is None:
+            raise BadRequest('missing zip code')
+        else:
+            zipcode = body.get('zipcode')
+            if len(zipcode)!=5 or zipcode.isdigit()==False:
+                raise BadRequest("Invalid zip code")
+            zipcode = int(zipcode)
+        if body.get('payment') is None:
+            raise BadRequest('missing payment type')
+        if body.get("vehicle") is None:
+            raise BadRequest("Missing vehicle details")
 
     if body.get("photo") is None:
         raise BadRequest("Missing photo")
@@ -108,23 +120,27 @@ def add_new_user():
 
     password_hash = security.generate_password_hash(body.get('password'))
 
-    newUser = {"firstName": body.get("first_name"),
+    newUser = { "type": body.get("type"),
+                "first_name": body.get("first_name"),
                 "last_name":body.get("last_name"),
                 "username":body.get("username"),
                 "password": password_hash,
-                "zipcode":zipcode,
+                "zipcode":body.get("zipcode"),
                 "payment":body.get("payment"),
                 "phone": phone,
                 "vehicle": body.get("vehicle"),
                 "photo": data,
                 "verified_phone": False}    
 
-    try:
+    if users.find_one({"username": body.get("username")}):
+        raise NotFound('Username already exists')
+    else:
         users.insert_one(newUser)
-    except DuplicateKeyError:
-        raise NotFound('User already exists')
 
-    # check that mongo didn't fail
+    user = users.find_one({'username': body.get('username')})
+    serializable_user_obj = json.loads(json_util.dumps(user))
+    session['user'] = serializable_user_obj
+
     return Response(status=201)
 
 def imageStorage(photo):
@@ -142,8 +158,9 @@ def imageStorage(photo):
 
 @app.route('/profile', methods = ['PUT'])
 def update():
-    # if session.get('user') is None:
-    #     raise Unauthorized()
+    if session.get('user') is None:
+        raise Unauthorized()
+
     if not request.is_json:
         raise UnsupportedMediaType()
 
@@ -165,22 +182,51 @@ def update():
         else:
             raise BadRequest("invalid phone number")
 
-    user = users.find_one({'username': body.get('username')})
 
-    serializable_user_obj = json.loads(json_util.dumps(user))
-    session['user'] = serializable_user_obj
+    if body.get("first_name"):
+        users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'first_name':body.get("first_name")}})
 
-    return Response(200)
+    if body.get("last_name"):
+        users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'last_name':body.get("last_name")}})
+
+    if body.get("zipcode"):
+        users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'zipcode':body.get("zipcode")}})
+
+    if body.get("password"):
+        password_hash = security.generate_password_hash(body.get('password'))
+        users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'password':password_hash}})
+
+    if body.get("payment"):
+        users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'payment':body.get("payment")}})
+
+    if body.get("vehicle"):
+        users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'vehicle':body.get("vehicle")}})
+
+    serializable_user_obj = json_util.dumps(session.get('user'))
+
+    return Response(serializable_user_obj, 200)
 
 
     ##TODO: implement update method
 
 @app.route('/profile', methods = ['GET'])
-def update_profile():
+def get_profile():
     if session.get('user') is None:
         raise Unauthorized()
 
-    return jsonify(session.get('user'))
+    response = jsonify(session.get('user'))
+    return response
+
+# Get a specific user's profile
+@app.route('/profile/<user_id>', methods = ['GET'])
+def get_user_profile(user_id):
+    if session.get('user') is None:
+        raise Unauthorized()
+
+    user = users.find_one({'_id': ObjectId(user_id)}, projection={'password': False}) # Don't return the user's password
+    response = json_util.dumps(user)
+
+    return response
 
 #the data passed should come from database - check the earlier implementation of the API
 def retriveImage(data):
@@ -212,7 +258,7 @@ def verifyCode():
     if resp.content["success"]:
         users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'verified_phone':True}})
 
-        user = users.find_one({'username': body.get('username')})
+        user = users.find_one({'username': session.get('user')['username']})
 
         serializable_user_obj = json.loads(json_util.dumps(user))
         session['user'] = serializable_user_obj
@@ -234,12 +280,14 @@ def login():
 
     # Check that the request body has `username` and `password` properties
     body = request.get_json()
+    if body.get('type') is None:
+        raise BadRequest('missing user type')
     if body.get('username') is None:
         raise BadRequest('missing username property')
     if body.get('password') is None:
         raise BadRequest('missing password property')
 
-    user = users.find_one({'username': body.get('username')})
+    user = users.find_one({'username': body.get('username'), "type": body.get("type")})
 
     if user is None:
         session.clear()
@@ -247,6 +295,8 @@ def login():
     if not security.check_password_hash(user['password'], body.get('password')):
         session.clear()
         raise BadRequest('Password does not match')
+    # TODO: check that the user type matches
+    # We don't want someone who registers as one type to be able to log in as the other type
 
     # this little trick is necessary because MongoDb sends back objects that are
     # CLOSE to json, but not actually JSON (principally the ObjectId is not JSON serializable)
@@ -290,6 +340,8 @@ def create_job():
         raise BadRequest("missing start address property")
     if body.get('end_address') is None:
         raise BadRequest("missing end address property")
+    if body.get("description") is None:
+        raise BadRequest("missing description property")
     if body.get("max_price") is None:
         raise BadRequest("missing max price property")
     else:
@@ -305,12 +357,14 @@ def create_job():
                     'start_address': body.get('start_address'),
                     'end_address': body.get("end_address"),
                     'max_price': max_price,
+                    'description': body.get("description"),
                     'job_status':'Open'}
 
     job_record.update({'user': session['user']['_id']['$oid']})
 
     # Insert into the mongo collection
     res = jobs.insert_one(job_record)
+
     return Response(str(res.inserted_id), 200)
 
 @app.route('/jobs', methods=['GET'])
@@ -318,8 +372,13 @@ def get_jobs():
     if session.get('user') is None:
         raise Unauthorized()
 
-    all_jobs = json_util.dumps(jobs.find({}))
-    return Response(all_jobs, 200)
+    if session.get('user')['type'] == "requester":
+        job = jobs.find_one({'user': session['user']['_id']['$oid'], 'job_status': 'Open'})
+        res = json_util.dumps(job)
+        return Response(res, 200) # will return None if the user has no open job, this is ok
+    else:
+        all_jobs = json_util.dumps(jobs.find({}))
+        return Response(all_jobs, 200)
 
 @app.route('/jobs/<jobid>', methods=['GET'])
 def job_desc(jobid):
@@ -393,8 +452,7 @@ def addOffer():
     if body.get('start_time') is None:
         raise BadRequest('missing start_time property')
 
-
-    jobId = body.get('job_id')
+    job_id = body.get('job_id')
     price =  body.get('price')
     start_time = body.get('start_time')
     userId = session.get('user')["_id"]["$oid"]
@@ -408,7 +466,7 @@ def addOffer():
         raise BadRequest("Price out of range")
 
     offer = {'userId': userId,
-                'jobId':jobId,
+                'jobId':job_id,
                 'price':price,
                 'start_time': start_time
                 }
@@ -424,21 +482,18 @@ def addOffer():
     # check that mongo didn't fail
     return Response(offerId,status=201)
 
+
 @app.route('/getOffers/<job_id>', methods = ['GET'])
 def getOffers(job_id):
     if session.get('user') is None:
         raise Unauthorized()
 
-    job = jobs.find_one({"_id":ObjectId(job_id)})
+    job = jobs.find_one({"_id": ObjectId(job_id)})
 
     if job is None:
         raise BadRequest("invalid Job ID")
 
-    if job["user"] != session.get('user')["_id"]["$oid"]:
-        raise Unauthorized()
-
     return Response(json_util.dumps(offers.find({'jobId': job_id})), 200)
-
 
 
 @app.route('/acceptOffer', methods=['POST'])
@@ -828,4 +883,4 @@ def acceptOffer():
 # When run in GCP, Gunicorn is used instead (see entrypoint in app.yaml) to
 # Access the Flack app via WSGI
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=8080, debug=True)
+    app.run(host='127.0.0.1', port=8081, debug=True)
