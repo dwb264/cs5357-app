@@ -171,12 +171,9 @@ def update():
     if body.get("vehicle"):
         users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'vehicle':body.get("vehicle")}})
 
-    user = users.find_one({'username': session.get('user')['username']})
+    serializable_user_obj = json_util.dumps(session.get('user'))
 
-    serializable_user_obj = json.loads(json_util.dumps(user))
-    session['user'] = serializable_user_obj
-
-    return Response(200)
+    return Response(serializable_user_obj, 200)
 
 
     ##TODO: implement update method

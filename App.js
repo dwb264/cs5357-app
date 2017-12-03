@@ -13,6 +13,7 @@ const sanitizeInput = (str) => {
 };
 
 const validateStr = (label, str, maxLen) => {
+
     str = sanitizeInput(str);
     if (str == "") {
         return label + " cannot be blank";
@@ -169,15 +170,10 @@ class RegisterScreen extends React.Component {
                 lastNameError: validateStr("Last name", this.state.lastName, 100),
                 usernameError: validateStr("Username", this.state.username, 50),
                 passwordError: validateStr("Password", this.state.password, 100),
+                zipcodeError: validateInt("Zipcode", this.state.zipcode, 5),
+                vehicleError: validateStr("Vehicle", this.state.vehicle, 100),
+                paymentError: validateStr("Payment", this.state.payment, 50),
             }, () => {
-
-                if (isMover) {
-                    this.setState({
-                        zipcodeError: validateInt("Zipcode", this.state.zipcode, 5),
-                        vehicleError: validateStr("Vehicle", this.state.vehicle, 100),
-                        paymentError: validateStr("Payment", this.state.payment, 50),
-                    });
-                }
 
                 if (this.state.firstNameError == ""
                     && this.state.lastNameError == ""
@@ -197,7 +193,7 @@ class RegisterScreen extends React.Component {
                         "zipcode": this.state.zipcode,
                         "vehicle": this.state.vehicle,
                         "payment": this.state.payment,
-                    }
+                    };
 
                     // POST new user to database
 
@@ -609,7 +605,7 @@ class RequestFormScreen extends React.Component {
             description: '',
             timePickerVisible: false,
             activeField: null,
-            submitted: jobId ? true: false,
+            submitted:false,
 
             startAddressError: '',
             endAddressError: '',
@@ -642,6 +638,7 @@ class RequestFormScreen extends React.Component {
                         endTime: response.end_time,
                         maximumPrice: response.max_price,
                         description: response.description,
+                        submitted: true,
                     })
                     jobId = (response._id["$oid"]);
                 }
@@ -830,6 +827,8 @@ class MoverList extends React.Component {
 
     componentDidMount() {
 
+        // Check if the requester has an open job
+
         fetch(api + '/jobs', {
             method: 'GET',
             headers: {
@@ -840,6 +839,9 @@ class MoverList extends React.Component {
         }).then(response => {
             if (response.status === 200) {
                 response = parseResponseBody(response);
+
+                // If there is an open job, get the offers
+
                 if (response) {
 
                     jobId = (response._id["$oid"]);
@@ -886,7 +888,7 @@ class MoverList extends React.Component {
 
         const refreshList = () => {
             console.log(this.state.data);
-            if (this.state.jobId !== null) {
+            if (jobId !== null) {
                 fetch(api + "/getOffers/" + jobId, {
                     method: 'GET',
                     headers: {
@@ -916,7 +918,7 @@ class MoverList extends React.Component {
             <View style={styles.containerTop}>
 
                 <View style={styles.grayHeader}>
-                    <Text style={styles.h1}>{this.state.data.length} movers are available{this.state.data.length > 0 ? "!" : " :("}</Text>
+                    <Text style={styles.h1}>{this.state.data.length} mover(s) available{this.state.data.length > 0 ? "!" : " :("}</Text>
                 </View>
 
                 <ScrollView style={{height: 400, width: "100%"}}>
@@ -1225,7 +1227,15 @@ class ProfileScreen extends React.Component {
             newPassword: null,
             newZipCode: null,
             newVehicle: null,
-            newPayments: null
+            newPayments: null,
+
+            firstNameError: '',
+            lastNameError: '',
+            usernameError: '',
+            passwordError: '',
+            zipcodeError: '',
+            vehicleError: '',
+            paymentError: '',
         }
     }
 
@@ -1246,6 +1256,14 @@ class ProfileScreen extends React.Component {
                         zipCode: response.zipcode,
                         vehicle: response.vehicle,
                         payments: response.payment,
+
+                        newFirstName: response.first_name,
+                        newLastName: response.last_name,
+                        newUsername: response.username,
+                        newPassword: response.password,
+                        newZipCode: response.zipcode,
+                        newVehicle: response.vehicle,
+                        newPayments: response.payment,
                 });
                 validatedPhone = response["verified_phone"];
 
@@ -1263,58 +1281,59 @@ class ProfileScreen extends React.Component {
             // TODO: Validate form and post data to DB
             var validData = {};
 
-            if (this.state.newFirstName !== null) {
+            this.setState({
+                firstNameError: validateStr("First name", this.state.newFirstName, 100),
+                lastNameError: validateStr("Last name", this.state.newLastName, 100),
+                usernameError: validateStr("Username", this.state.newUsername, 50),
+                zipcodeError: validateInt("Zipcode", this.state.newZipCode, 5),
+                vehicleError: validateStr("Vehicle", this.state.newVehicle, 100),
+                paymentError: validateStr("Payment", this.state.newPayments, 100),
+            }, () => {
 
-            }
+                if (this.state.firstNameError == ""
+                    && this.state.lastNameError == ""
+                    && this.state.usernameError == ""
+                    && this.state.zipcodeError == ""
+                    && this.state.vehicleError == ""
+                    && this.state.paymentError == ""
+                ) {
 
-            if (this.state.newLastName !== null) {
+                    const validData = {
+                        "type": userType,
+                        "first_name": this.state.newFirstName,
+                        "last_name": this.state.newLastName,
+                        "username": this.state.newUsername,
+                        "zipcode": this.state.newZipCode,
+                        "vehicle": this.state.newVehicle,
+                        "payment": this.state.newPayments,
+                    }
 
-            }
+                    fetch(api + "/profile", {
+                        method: 'PUT',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }, credentials: 'same-origin',
+                        body: JSON.stringify(validData),
+                    }).then(response => {
+                        if (response.status === 200) {
+                            response = parseResponseBody(response);
+                            this.setState({
+                                firstName: response.first_name,
+                                lastName: response.last_name,
+                                username: response.username,
+                                zipCode: response.zipcode,
+                                vehicle: response.vehicle,
+                                payments: response.payment,
+                            });
 
-            if (this.state.newUsername !== null) {
-
-            }
-
-            if (this.state.newPassword !== null) {
-
-            }
-
-            if (this.state.newZipcode !== null) {
-
-            }
-
-            if (this.state.newVehicle != null) {
-
-            }
-
-            if (this.state.newPayments != null) {
-
-            }
-
-            fetch(api + "/profile", {
-                method: 'PUT',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }, credentials: 'same-origin',
-            }).then(response => {
-                if (response.status === 200) {
-                    response = parseResponseBody(response);
-                    this.setState({
-                        firstName: response.first_name,
-                        lastName: response.last_name,
-                        username: response.username,
-                        password: response.password,
-                        zipCode: response.zipcode,
-                        vehicle: response.vehicle,
-                        payments: response.payment,
+                        } else {
+                            throw new Error('Something went wrong on api server!');
+                        }
                     });
-
-                } else {
-                    throw new Error('Something went wrong on api server!');
                 }
             });
-        };
+        }
 
         const cancelUpdateProfile = () => {
             // Revert all fields to original state
@@ -1378,6 +1397,7 @@ class ProfileScreen extends React.Component {
                                 defaultValue={this.state.firstName}
                                 onChangeText={(text) => this.setState({newFirstName: text})}
                             />
+                                <Text style={styles.errorText}>{this.state.firstNameError}</Text>
                             </View>
                             <View>
                             <Text style={styles.jobDetailDesc}>Last Name</Text>
@@ -1387,6 +1407,7 @@ class ProfileScreen extends React.Component {
                                 defaultValue={this.state.lastName}
                                 onChangeText={(text) => this.setState({newLastName: text})}
                              />
+                                <Text style={styles.errorText}>{this.state.lastNameError}</Text>
                             </View>
                         </View>
                     </View>
@@ -1399,7 +1420,7 @@ class ProfileScreen extends React.Component {
                                     placeholder="Username"
                                     defaultValue={this.state.username}
                                     onChangeText={(text) => this.setState({newUsername: text})}
-                                />
+                                /><Text style={styles.errorText}>{this.state.usernameError}</Text>
                             </View>
                             <View style={{width: "50%"}}>
                                 <Text style={styles.jobDetailDesc}>Password</Text>
@@ -1409,7 +1430,7 @@ class ProfileScreen extends React.Component {
                                     secureTextEntry={true}
                                     defaultValue={this.state.password}
                                     onChangeText={(text) => this.setState({newPassword: text})}
-                                />
+                                /><Text style={styles.errorText}>{this.state.passwordError}</Text>
                             </View>
                         </View>
 
@@ -1420,7 +1441,7 @@ class ProfileScreen extends React.Component {
                                 placeholder="Zip Code"
                                 defaultValue={this.state.zipCode}
                                 onChangeText={(text) => this.setState({newZipCode: text})}
-                            />
+                            /><Text style={styles.errorText}>{this.state.zipcodeError}</Text>
                         </View>
 
                         <View style={{width: "90%", display: isMover ? 'flex' : 'none'}}>
@@ -1431,7 +1452,7 @@ class ProfileScreen extends React.Component {
                                 placeholder="Vehicle Type"
                                 defaultValue={this.state.vehicle}
                                 onChangeText={(text) => this.setState({newVehicle: text})}
-                            />
+                            /><Text style={styles.errorText}>{this.state.vehicleError}</Text>
                         </View>
 
                         <View style={{width: "90%", display: isMover ? 'flex' : 'none'}}>
@@ -1442,7 +1463,7 @@ class ProfileScreen extends React.Component {
                                 placeholder="Payment Types Accepted"
                                 defaultValue={this.state.payments}
                                 onChangeText={(text) => this.setState({newPayments: text})}
-                            />
+                            /><Text style={styles.errorText}>{this.state.paymentError}</Text>
                         </View>
 
                     <View style={styles.grayFooter}>
@@ -1458,7 +1479,7 @@ class ProfileScreen extends React.Component {
                 </View>
                 </ScrollView>
         );
-    }
+    };
 }
 
 /* -- Mover Screens --*/
@@ -1591,6 +1612,8 @@ class JobDetailScreen extends React.Component {
             timeError: "",
             amountError: "",
 
+            headerphoto: require("./img/boxes.jpg")
+
         }
     }
 
@@ -1680,7 +1703,7 @@ class JobDetailScreen extends React.Component {
 
                 <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff"}}>
 
-                    { /*<Image source={this.state.data.photo} style={{width: "100%", height:100}}/> */ }
+                    <Image source={this.state.headerphoto} style={{width: "100%", height:100}}/>
 
                     <View style={styles.jobDetailRow}>
 
@@ -1761,6 +1784,7 @@ class JobDetailScreen extends React.Component {
                     <Text
                         style={{margin:10, fontSize:30, color: "#00796B"}}
                     >Offer placed!</Text>
+                    <Text>You have offered to do this job at {this.state.offerTime} for ${this.state.offerAmount}.</Text>
                     <Text
                         style={{marginTop:10, margin: 20, marginBottom: 30, fontSize:16, textAlign: 'center', color: "#666"}}
                     >We will let you know if the requester accepts your offer.</Text>
