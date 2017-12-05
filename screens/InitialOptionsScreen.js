@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Text, View, TouchableOpacity} from 'react-native';
 import styles from './../style';
 import { validateStr, sanitizeInput, parseResponseBody, validateInt, getPhoneFromInput } from './../HelperFunctions';
+var api = "http://127.0.0.1:8081";
 
 export default class InitialOptionScreen extends React.Component {
 
@@ -42,7 +43,7 @@ export default class InitialOptionScreen extends React.Component {
                     <Text
                     onPress={() => {
                         userType = 'mover';
-                        navigate('Register', {"image_data": null});
+                        navigate('Register', {"user_type": "mover", "image_data": null, "previous_data": null});
                     }}
                     style={{margin: 5}}
                     >Register as Mover</Text>
@@ -50,7 +51,7 @@ export default class InitialOptionScreen extends React.Component {
                     <Text
                     onPress={() => {
                         userType = 'requester';
-                        navigate('Register', {"image_data": null, "previous_data": null});
+                        navigate('Register', {"user_type": "requester", "image_data": null, "previous_data": null});
                     }}
                     style={{margin: 5}}
                     >Register as Requester</Text>

@@ -3,6 +3,7 @@ import { Text, TextInput, ScrollView, View, TouchableOpacity} from 'react-native
 import DateTimePicker from 'react-native-modal-datetime-picker';
 import styles from './../style';
 import { validateStr, sanitizeInput, parseResponseBody, validateInt, getPhoneFromInput } from './../HelperFunctions';
+var api = "http://127.0.0.1:8081";
 
 class RequestFormScreen extends React.Component {
 

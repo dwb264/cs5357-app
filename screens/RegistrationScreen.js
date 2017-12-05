@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import {Text, TextInput, View, TouchableOpacity, Image, ScrollView} from 'react-native';
 import styles from './../style';
 import { validateStr, sanitizeInput, parseResponseBody, validateInt, getPhoneFromInput } from './../HelperFunctions';
+var api = "http://127.0.0.1:8081";
 
 class RegistrationScreen extends React.Component {
 
@@ -12,6 +13,7 @@ class RegistrationScreen extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+                userType: this.props.navigation.state.params.user_type,
                 firstName: '',
                 lastName: '',
                 username: '',
@@ -53,7 +55,7 @@ class RegistrationScreen extends React.Component {
 
     render() {
         const {navigate} = this.props.navigation;
-        const isMover = userType == 'mover' ? true : false;
+        const isMover = this.state.userType == 'mover' ? true : false;
 
         const submitForm = () => {
 
@@ -87,7 +89,7 @@ class RegistrationScreen extends React.Component {
                 ) {
 
                     const validData = {
-                        "type": userType,
+                        "type": this.state.userType,
                         "first_name": this.state.firstName,
                         "last_name": this.state.lastName,
                         "username": this.state.username,
@@ -105,15 +107,17 @@ class RegistrationScreen extends React.Component {
                         headers: {
                             'Accept': 'application/json',
                             'Content-Type': 'application/json',
-                        },
+                        }, credentials: 'include',
                         body: JSON.stringify(validData)
                     }).then(response => {
                         if (response.status === 201) {
                             navigate("GetCode");
                         } else {
-                            console.log(response);
+                            console.log(JSON.stringify(response));
                             throw new Error('Something went wrong on api server!');
                         }
+                    }).catch(function(error) {
+                        alert(error);
                     })
 
                 } else {
@@ -240,7 +244,7 @@ class RegistrationScreen extends React.Component {
                         <Text style={{height: 30, width: "90%", marginTop: 20, margin:10, display: this.state.imageData ? "none" : "flex"}}>📷 Take Profile Photo</Text>
                         <Text style={styles.errorText}>{ this.state.photoError }</Text>
                         <Text style={{height: 30, width: "90%", marginTop: 20, margin:10, display: this.state.imageData ? "flex" : "none"}}>Photo Uploaded Successfully. Tap to retake.</Text>
-                        <Image source={{uri: 'data:image/png;base64,' + this.state.imageData}} style={{
+                        <Image source={{uri: this.state.imageData}} style={{
                             display: this.state.imageData ? "flex" : "none",
                             width: 100,
                             height: 100

@@ -27,7 +27,6 @@ var jobId = null; // Current job id; null if no current job
 
 
 
-
 // StackNavigator: a registry of all screens in the app
 // Requester and mover both have a nested TabNavigator that contains their screens
 const App = StackNavigator({

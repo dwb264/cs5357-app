@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Text, ScrollView, View, FlatList, TouchableOpacity} from 'react-native';
 import styles from './../style';
 import { validateStr, sanitizeInput, parseResponseBody, validateInt, getPhoneFromInput } from './../HelperFunctions';
+var api = "http://127.0.0.1:8081";
 
 class MoverList extends React.Component {
 

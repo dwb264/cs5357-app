@@ -3,6 +3,8 @@ import { Slider, Text, View, TouchableOpacity} from 'react-native';
 import { Camera, Permissions, FileSystem, Video } from 'expo';
 import styles from './../style';
 
+// Heavily borrowed from https://github.com/expo/camerja/blob/master/App.js
+
 export default class CameraScreen extends React.Component {
 
     static navigationOptions = {
@@ -27,38 +29,9 @@ export default class CameraScreen extends React.Component {
         }
     }
 
-    getRatios = async function() {
-        const ratios = await this.camera.getSupportedRatios();
-        return ratios;
-    };
-
-    toggleView() {
-        this.setState({
-            showGallery: !this.state.showGallery,
-        });
-    }
-
     toggleFacing() {
         this.setState({
             type: this.state.type === 'back' ? 'front' : 'back',
-        });
-    }
-
-    toggleFlash() {
-        this.setState({
-            flash: flashModeOrder[this.state.flash],
-        });
-    }
-
-    setRatio(ratio) {
-        this.setState({
-            ratio,
-        });
-    }
-
-    toggleWB() {
-        this.setState({
-            whiteBalance: wbOrder[this.state.whiteBalance],
         });
     }
 
@@ -119,20 +92,6 @@ export default class CameraScreen extends React.Component {
                         onPress={this.toggleFacing.bind(this)}>
                         <Text style={styles.flipText}> FLIP </Text>
                     </TouchableOpacity>
-                    <TouchableOpacity
-                        style={styles.flipButton}
-                        onPress={this.toggleFlash.bind(this)}>
-                        <Text style={styles.flipText}>
-                            {' '}FLASH: {this.state.flash}{' '}
-                        </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={styles.flipButton}
-                        onPress={this.toggleWB.bind(this)}>
-                        <Text style={styles.flipText}>
-                            {' '}WB: {this.state.whiteBalance}{' '}
-                        </Text>
-                    </TouchableOpacity>
                 </View>
                 <View
                     style={{
@@ -181,9 +140,9 @@ export default class CameraScreen extends React.Component {
                         ]}
                         onPress={() => {
                             if (this.camera) {
-                                this.camera.takePictureAsync({base64: true}).then(image_data => {
+                                this.camera.takePictureAsync().then(image_data => {
                                     // console.log(this.state.previous_data);
-                                    navigate("Register", {"image_data": image_data.base64, "previous_data": this.state.previous_data});
+                                    navigate("Register", {"image_data": image_data.uri, "previous_data": this.state.previous_data});
                                 });
                             }}}>
                         <Text style={styles.flipText}> SNAP </Text>

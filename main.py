@@ -67,6 +67,7 @@ def add_new_user():
     This method is used to register a new user.
     :return:
     """
+
     # Bounce any requests that are not JSON type requests
     if not request.is_json:
         raise UnsupportedMediaType()
@@ -130,7 +131,7 @@ def add_new_user():
                 "phone": phone,
                 "vehicle": body.get("vehicle"),
                 "photo": data,
-                "verified_phone": False}    
+                "verified_phone": False}
 
     if users.find_one({"username": body.get("username")}):
         raise NotFound('Username already exists')
