@@ -1,0 +1,223 @@
+import React, { Component } from 'react';
+import { Text, TextInput, View, TouchableOpacity} from 'react-native';
+import styles from './../style';
+import CameraScreen from './CameraScreen';
+
+class RegistrationScreen extends React.Component {
+
+    static navigationOptions = {
+        header: null
+    };
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            firstName: '',
+            lastName: '',
+            username: '',
+            password: '',
+            zipcode: '',
+            vehicle: '',
+            payment: '',
+
+            firstNameError: '',
+            lastNameError: '',
+            usernameError: '',
+            passwordError: '',
+            zipcodeError: '',
+            vehicleError: '',
+            paymentError: '',
+
+            allErrors: '',
+
+            showCamera: false,
+        };
+    }
+
+    render() {
+        const {navigate} = this.props.navigation;
+        const isMover = userType == 'mover' ? true : false;
+
+        const submitForm = () => {
+
+            /* -- Validate Form --*/
+
+            this.setState({
+                firstNameError: validateStr("First name", this.state.firstName, 100),
+                lastNameError: validateStr("Last name", this.state.lastName, 100),
+                usernameError: validateStr("Username", this.state.username, 50),
+                passwordError: validateStr("Password", this.state.password, 100),
+
+            }, () => {
+
+                if (isMover) {
+                    this.setState({
+                        zipcodeError: validateInt("Zipcode", this.state.zipcode, 5),
+                        vehicleError: validateStr("Vehicle", this.state.vehicle, 100),
+                        paymentError: validateStr("Payment", this.state.payment, 50),
+                    })
+                }
+
+                if (this.state.firstNameError == ""
+                    && this.state.lastNameError == ""
+                    && this.state.usernameError == ""
+                    && this.state.passwordError == ""
+                    && this.state.zipcodeError == ""
+                    && this.state.vehicleError == ""
+                    && this.state.paymentError == ""
+                ) {
+
+                    const validData = {
+                        "type": userType,
+                        "first_name": this.state.firstName,
+                        "last_name": this.state.lastName,
+                        "username": this.state.username,
+                        "password": this.state.password,
+                        "zipcode": this.state.zipcode,
+                        "vehicle": this.state.vehicle,
+                        "payment": this.state.payment,
+                    };
+
+                    // POST new user to database
+
+                    fetch(api + "/profile", {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(validData)
+                    }).then(response => {
+                        if (response.status === 201) {
+                            navigate("GetCode");
+                        } else {
+                            console.log(response);
+                            throw new Error('Something went wrong on api server!');
+                        }
+                    })
+
+                } else {
+                    this.setState({allErrors: "Please fix errors."});
+                    return false;
+                }
+
+            });
+        };
+
+        return (
+                <View style={styles.container}>
+
+                    <View style={{ display: this.state.showCamera ? "flex" : "none" }}>
+                     <CameraScreen  />
+                    </View>
+
+                    <Text style={styles.h1}>Register as {userType}</Text>
+                    <View style={{flex:0, flexDirection: "row", justifyContent: "space-between", width: "90%"}}>
+                        <View style={{ width: "45%", height: 40}}>
+                        <TextInput
+                            style={{height: 40, width: "100%", marginTop:10, marginBottom:5}}
+                            placeholder="First Name"
+                            onChangeText={(text) => this.setState({
+                                    firstName: text,
+                                    firstNameError: validateStr("First name", text, 100)
+                                })
+                            }
+                        />
+                        <Text style={styles.errorText}>{ this.state.firstNameError }</Text>
+                        </View>
+
+                        <View style={{ width: "45%", height: 40}}>
+                        <TextInput
+                            style={{height: 40, width: "100%", marginTop:10, marginBottom:5}}
+                            placeholder="Last Name"
+                            onChangeText={(text) => this.setState({
+                                    lastName: text,
+                                    lastNameError: validateStr("Last name", text, 100)
+                                })
+                            }
+                        /><Text style={styles.errorText}>{ this.state.lastNameError }</Text>
+                        </View>
+                    </View>
+
+                    <View style={[styles.formField, {borderWidth: 1 }]}>
+                    <TextInput
+                        style={{height: 40, width: "100%", marginTop:10, marginBottom:5}}
+                        placeholder="Username"
+                        onChangeText={(text) => this.setState({
+                            username: text,
+                            usernameError: validateStr("Username", text, 50)
+                        })
+                        }
+                    /><Text style={styles.errorText}>{ this.state.usernameError }</Text>
+                    </View>
+
+                    <View style={styles.formField}>
+                    <TextInput
+                        style={{height: 40, width: "100%", marginTop:10, marginBottom:5}}
+                        placeholder="Password"
+                        secureTextEntry={true}
+                        onChangeText={(text) => this.setState({
+                                    password: text,
+                                    passwordError: validateStr("Password", text, 100)
+                                })
+                            }
+                    /><Text style={styles.errorText}>{ this.state.passwordError }</Text>
+                    </View>
+
+                    <View style={styles.formField}>
+                    <TextInput
+                        style={{height: 40, width: "100%", marginTop:10, marginBottom:5, display: isMover ? 'flex' : 'none'}}
+                        placeholder="Zip Code"
+                        onChangeText={(text) => this.setState({
+                                    zipcode: text,
+                                    zipcodeError: validateInt("Zipcode", text, 5)
+                                })
+                            }
+                    /><Text style={styles.errorText}>{ this.state.zipcodeError }</Text>
+                    </View>
+
+                    <View style={styles.formField}>
+                    <TextInput
+                        style={{height: 40, width: "100%", marginTop:10, marginBottom:5, display: isMover ? 'flex' : 'none'}}
+                        placeholder="Vehicle Type"
+                        onChangeText={(text) => this.setState({
+                                    vehicle: text,
+                                    vehicleError: validateStr("Vehicle", text, 100)
+                                })
+                            }
+                    /><Text style={styles.errorText}>{ this.state.vehicleError }</Text>
+                    </View>
+
+                    <View style={styles.formField}>
+                    <TextInput
+                        style={{height: 40, width: "100%", marginTop:10, marginBottom:5, display: isMover ? 'flex' : 'none'}}
+                        placeholder="Payment Types Accepted"
+                        onChangeText={(text) => this.setState({
+                                    payment: text,
+                                    paymentError: validateStr("Payment", text, 100)
+                                })
+                            }
+                    /><Text style={styles.errorText}>{ this.state.paymentError }</Text>
+                    </View>
+
+                    <TouchableOpacity
+                        onPress={() => this.setState({showCamera: true})}
+                    >
+                        <Text style={{height: 40, width: "90%", marginTop: 30, margin:10}}>📷 Upload Profile Photo</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        onPress={() => submitForm() ? navigate('GetCode') : false}
+                        style={styles.bigButton}
+                    >
+                        <Text style={{color: "#fff", fontSize: 20}}>Create Account</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.errorText}>{ this.state.allErrors }</Text>
+
+                    </View>
+        );
+}
+
+}
+
+export default RegistrationScreen;
