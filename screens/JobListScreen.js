@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Text, ScrollView, View, FlatList, TouchableOpacity} from 'react-native';
 import styles from './../style';
-
+import './../HelperFunctions';
 
 class JobList extends React.Component {
 

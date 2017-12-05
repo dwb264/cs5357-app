@@ -5,26 +5,25 @@ import styles from './../style';
 
 export default class CameraScreen extends React.Component {
 
-    state = {
-        flash: 'off',
-        zoom: 0,
-        autoFocus: 'on',
-        depth: 0,
-        type: 'back',
-        whiteBalance: 'auto',
-        ratio: '16:9',
-        ratios: [],
-        photoId: 1,
-        showGallery: false,
-        photos: [],
+    static navigationOptions = {
+        header: null
     };
 
-    componentDidMount() {
-        FileSystem.makeDirectoryAsync(
-            FileSystem.documentDirectory + 'photos'
-        ).catch(e => {
-            console.log(e, 'Directory exists');
-        });
+    constructor(props) {
+        super(props)
+        this.state = {
+            flash: 'off',
+            zoom: 0,
+            autoFocus: 'on',
+            depth: 0,
+            type: 'back',
+            whiteBalance: 'auto',
+            ratio: '16:9',
+            ratios: [],
+            photoId: 1,
+            showGallery: false,
+            photos: [],
+        }
     }
 
     getRatios = async function() {
@@ -86,30 +85,14 @@ export default class CameraScreen extends React.Component {
         });
     }
 
-    takePicture = async function() {
-        if (this.camera) {
-            this.camera.takePicture().then(data => {
-                FileSystem.moveAsync({
-                    from: data,
-                    to: `${FileSystem.documentDirectory}photos/Photo_${this.state
-                        .photoId}.jpg`,
-                }).then(() => {
-                    this.setState({
-                        photoId: this.state.photoId + 1,
-                    });
-                    Vibration.vibrate();
-                });
-            });
-        }
-    };
+    render() {
 
-    renderGallery() {
-        return <GalleryScreen onPress={this.toggleView.bind(this)} />;
-    }
+        const { navigate } = this.props.navigation;
 
-    renderCamera() {
         return (
-            <Camera
+            <View style={styles.container2}>
+
+                <Camera
                 ref={ref => {
                     this.camera = ref;
                 }}
@@ -195,7 +178,12 @@ export default class CameraScreen extends React.Component {
                             styles.picButton,
                             { flex: 0.3, alignSelf: 'flex-end' },
                         ]}
-                        onPress={this.takePicture.bind(this)}>
+                        onPress={() => {
+                            if (this.camera) {
+                                this.camera.takePictureAsync({base64: true}).then(image_data => {
+                                    navigate("Register", {"image_data": image_data.base64});
+                                });
+                            }}}>
                         <Text style={styles.flipText}> SNAP </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -204,19 +192,12 @@ export default class CameraScreen extends React.Component {
                             styles.galleryButton,
                             { flex: 0.25, alignSelf: 'flex-end' },
                         ]}
-                        onPress={this.toggleView.bind(this)}>
-                        <Text style={styles.flipText}> Gallery </Text>
+                        onPress={() => navigate("Register", {"image_data": null})}>
+                        <Text style={styles.flipText}> Cancel </Text>
                     </TouchableOpacity>
                 </View>
             </Camera>
-        );
-    }
 
-    render() {
-
-        return (
-            <View style={styles.container2}>
-                {this.state.showGallery ? this.renderGallery() : this.renderCamera()}
             </View>
         );
     }

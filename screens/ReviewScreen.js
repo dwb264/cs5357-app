@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Text, View, Alert, Image, TouchableHighlight, TouchableOpacity} from 'react-native';
 import styles from './../style';
+import './../HelperFunctions';
 
 export default class ReviewScreen extends React.Component {
 

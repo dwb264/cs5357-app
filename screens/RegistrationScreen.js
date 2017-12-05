@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
-import { Text, TextInput, View, TouchableOpacity} from 'react-native';
+import {Text, TextInput, View, TouchableOpacity, Image, ScrollView} from 'react-native';
 import styles from './../style';
-import CameraScreen from './CameraScreen';
+import { validateStr, sanitizeInput, parseResponseBody, validateInt } from './../HelperFunctions';
 
 class RegistrationScreen extends React.Component {
 
@@ -27,11 +27,14 @@ class RegistrationScreen extends React.Component {
             zipcodeError: '',
             vehicleError: '',
             paymentError: '',
+            photoError: '',
 
             allErrors: '',
 
-            showCamera: false,
+            imageData: this.props.navigation.state.params.image_data,
+
         };
+        console.log(this.state.imageData);
     }
 
     render() {
@@ -47,6 +50,7 @@ class RegistrationScreen extends React.Component {
                 lastNameError: validateStr("Last name", this.state.lastName, 100),
                 usernameError: validateStr("Username", this.state.username, 50),
                 passwordError: validateStr("Password", this.state.password, 100),
+                photoError: this.state.imageData === null ? "Please upload a profile photo" : "",
 
             }, () => {
 
@@ -65,6 +69,7 @@ class RegistrationScreen extends React.Component {
                     && this.state.zipcodeError == ""
                     && this.state.vehicleError == ""
                     && this.state.paymentError == ""
+                    && this.state.photoError == ""
                 ) {
 
                     const validData = {
@@ -76,6 +81,7 @@ class RegistrationScreen extends React.Component {
                         "zipcode": this.state.zipcode,
                         "vehicle": this.state.vehicle,
                         "payment": this.state.payment,
+                        "photo": this.state.imageData,
                     };
 
                     // POST new user to database
@@ -105,14 +111,14 @@ class RegistrationScreen extends React.Component {
         };
 
         return (
-                <View style={styles.container}>
 
-                    <View style={{ display: this.state.showCamera ? "flex" : "none" }}>
-                     <CameraScreen  />
-                    </View>
 
-                    <Text style={styles.h1}>Register as {userType}</Text>
-                    <View style={{flex:0, flexDirection: "row", justifyContent: "space-between", width: "90%"}}>
+            <ScrollView>
+                <View style={{ flex: 1, marginTop: 24, alignItems: "center", flexDirection: "column",
+        justifyContent: 'center',}}>
+
+                    <Text style={[styles.h1, {marginTop: 20}]}>Register as {userType}</Text>
+                    <View style={{flexDirection: "row", justifyContent: "space-between", width: "90%"}}>
                         <View style={{ width: "45%", height: 40}}>
                         <TextInput
                             style={{height: 40, width: "100%", marginTop:10, marginBottom:5}}
@@ -139,7 +145,7 @@ class RegistrationScreen extends React.Component {
                         </View>
                     </View>
 
-                    <View style={[styles.formField, {borderWidth: 1 }]}>
+                    <View style={styles.formField}>
                     <TextInput
                         style={{height: 40, width: "100%", marginTop:10, marginBottom:5}}
                         placeholder="Username"
@@ -164,9 +170,9 @@ class RegistrationScreen extends React.Component {
                     /><Text style={styles.errorText}>{ this.state.passwordError }</Text>
                     </View>
 
-                    <View style={styles.formField}>
+                    <View style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}>
                     <TextInput
-                        style={{height: 40, width: "100%", marginTop:10, marginBottom:5, display: isMover ? 'flex' : 'none'}}
+                        style={{height: 40, width: "100%", marginTop:10, marginBottom:5 }}
                         placeholder="Zip Code"
                         onChangeText={(text) => this.setState({
                                     zipcode: text,
@@ -176,7 +182,7 @@ class RegistrationScreen extends React.Component {
                     /><Text style={styles.errorText}>{ this.state.zipcodeError }</Text>
                     </View>
 
-                    <View style={styles.formField}>
+                    <View style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}>
                     <TextInput
                         style={{height: 40, width: "100%", marginTop:10, marginBottom:5, display: isMover ? 'flex' : 'none'}}
                         placeholder="Vehicle Type"
@@ -188,7 +194,7 @@ class RegistrationScreen extends React.Component {
                     /><Text style={styles.errorText}>{ this.state.vehicleError }</Text>
                     </View>
 
-                    <View style={styles.formField}>
+                    <View style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}>
                     <TextInput
                         style={{height: 40, width: "100%", marginTop:10, marginBottom:5, display: isMover ? 'flex' : 'none'}}
                         placeholder="Payment Types Accepted"
@@ -201,9 +207,19 @@ class RegistrationScreen extends React.Component {
                     </View>
 
                     <TouchableOpacity
-                        onPress={() => this.setState({showCamera: true})}
+                        style={{alignItems: "center"}}
+                        onPress={() => navigate("Camera")}
                     >
-                        <Text style={{height: 40, width: "90%", marginTop: 30, margin:10}}>📷 Upload Profile Photo</Text>
+                        <Text style={{height: 30, width: "90%", marginTop: 10, margin:10, display: this.state.imageData ? "none" : "flex"}}>📷 Take Profile Photo</Text>
+                        <Text style={styles.errorText}>{ this.state.photoError }</Text>
+                        <Text style={{height: 30, width: "90%", marginTop: 10, margin:10, display: this.state.imageData ? "flex" : "none"}}>Photo Uploaded Successfully. Tap to retake.</Text>
+                        <Image source={{uri: 'data:image/png;base64,' + this.state.imageData}} style={{
+                            display: this.state.imageData ? "flex" : "none",
+                            width: 100,
+                            height: 100
+                        }}/>
+
+
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -214,7 +230,9 @@ class RegistrationScreen extends React.Component {
                     </TouchableOpacity>
                     <Text style={styles.errorText}>{ this.state.allErrors }</Text>
 
+
                     </View>
+                 </ScrollView>
         );
 }
 

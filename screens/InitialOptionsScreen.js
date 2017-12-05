@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Text, View, TouchableOpacity} from 'react-native';
 import styles from './../style';
+import './../HelperFunctions';
 
 export default class InitialOptionScreen extends React.Component {
 
@@ -41,7 +42,7 @@ export default class InitialOptionScreen extends React.Component {
                     <Text
                     onPress={() => {
                         userType = 'mover';
-                        navigate('Register');
+                        navigate('Register', {"image_data": null});
                     }}
                     style={{margin: 5}}
                     >Register as Mover</Text>
@@ -49,7 +50,7 @@ export default class InitialOptionScreen extends React.Component {
                     <Text
                     onPress={() => {
                         userType = 'requester';
-                        navigate('Register');
+                        navigate('Register', {"image_data": null});
                     }}
                     style={{margin: 5}}
                     >Register as Requester</Text>
