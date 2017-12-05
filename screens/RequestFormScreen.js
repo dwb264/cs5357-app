@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Text, TextInput, ScrollView, View, TouchableOpacity} from 'react-native';
 import DateTimePicker from 'react-native-modal-datetime-picker';
 import styles from './../style';
-import './../HelperFunctions';
+import { validateStr, sanitizeInput, parseResponseBody, validateInt, getPhoneFromInput } from './../HelperFunctions';
 
 class RequestFormScreen extends React.Component {
 

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Text, TextInput, View, TouchableOpacity} from 'react-native';
 import styles from './../style';
-import './../HelperFunctions';
+import { validateStr, sanitizeInput, parseResponseBody, validateInt, getPhoneFromInput } from './../HelperFunctions';
 
 class LoginScreen extends React.Component {
 

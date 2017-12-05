@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Button, Text, View, TouchableOpacity} from 'react-native';
 import styles from './../style';
-import './../HelperFunctions';
+import { validateStr, sanitizeInput, parseResponseBody, validateInt, getPhoneFromInput } from './../HelperFunctions';
 
 export default class MoverDetailScreen extends React.Component {
 

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import {Text, TextInput, View, TouchableOpacity, Image, ScrollView} from 'react-native';
 import styles from './../style';
-import { validateStr, sanitizeInput, parseResponseBody, validateInt } from './../HelperFunctions';
+import { validateStr, sanitizeInput, parseResponseBody, validateInt, getPhoneFromInput } from './../HelperFunctions';
 
 class RegistrationScreen extends React.Component {
 
@@ -12,29 +12,43 @@ class RegistrationScreen extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            firstName: '',
-            lastName: '',
-            username: '',
-            password: '',
-            zipcode: '',
-            vehicle: '',
-            payment: '',
+                firstName: '',
+                lastName: '',
+                username: '',
+                password: '',
+                zipcode: '',
+                vehicle: '',
+                payment: '',
 
-            firstNameError: '',
-            lastNameError: '',
-            usernameError: '',
-            passwordError: '',
-            zipcodeError: '',
-            vehicleError: '',
-            paymentError: '',
-            photoError: '',
+                firstNameError: '',
+                lastNameError: '',
+                usernameError: '',
+                passwordError: '',
+                zipcodeError: '',
+                vehicleError: '',
+                paymentError: '',
+                photoError: '',
 
-            allErrors: '',
+                allErrors: '',
 
-            imageData: this.props.navigation.state.params.image_data,
+                imageData: this.props.navigation.state.params.image_data,
 
-        };
-        console.log(this.state.imageData);
+            };
+
+        //console.log(this.state.imageData);
+    }
+
+    componentDidMount() {
+
+        if (this.props.navigation.state.params.previous_data !== null) {
+            this.state = this.props.navigation.state.params.previous_data;
+        }
+
+        this.setState({imageData: this.props.navigation.state.params.image_data});
+
+        if (this.props.navigation.state.params.image_data !== null) {
+            this.setState({ photoError: ""})
+        }
     }
 
     render() {
@@ -123,10 +137,13 @@ class RegistrationScreen extends React.Component {
                         <TextInput
                             style={{height: 40, width: "100%", marginTop:10, marginBottom:5}}
                             placeholder="First Name"
-                            onChangeText={(text) => this.setState({
+                            value={this.state.firstName}
+                            onChangeText={(text) => {
+                                this.setState({
                                     firstName: text,
                                     firstNameError: validateStr("First name", text, 100)
-                                })
+                                });
+                                }
                             }
                         />
                         <Text style={styles.errorText}>{ this.state.firstNameError }</Text>
@@ -136,6 +153,7 @@ class RegistrationScreen extends React.Component {
                         <TextInput
                             style={{height: 40, width: "100%", marginTop:10, marginBottom:5}}
                             placeholder="Last Name"
+                            value={this.state.lastName}
                             onChangeText={(text) => this.setState({
                                     lastName: text,
                                     lastNameError: validateStr("Last name", text, 100)
@@ -149,6 +167,7 @@ class RegistrationScreen extends React.Component {
                     <TextInput
                         style={{height: 40, width: "100%", marginTop:10, marginBottom:5}}
                         placeholder="Username"
+                        value={this.state.username}
                         onChangeText={(text) => this.setState({
                             username: text,
                             usernameError: validateStr("Username", text, 50)
@@ -161,6 +180,7 @@ class RegistrationScreen extends React.Component {
                     <TextInput
                         style={{height: 40, width: "100%", marginTop:10, marginBottom:5}}
                         placeholder="Password"
+                        value={this.state.password}
                         secureTextEntry={true}
                         onChangeText={(text) => this.setState({
                                     password: text,
@@ -174,6 +194,7 @@ class RegistrationScreen extends React.Component {
                     <TextInput
                         style={{height: 40, width: "100%", marginTop:10, marginBottom:5 }}
                         placeholder="Zip Code"
+                        value={this.state.zipcode}
                         onChangeText={(text) => this.setState({
                                     zipcode: text,
                                     zipcodeError: validateInt("Zipcode", text, 5)
@@ -186,6 +207,7 @@ class RegistrationScreen extends React.Component {
                     <TextInput
                         style={{height: 40, width: "100%", marginTop:10, marginBottom:5, display: isMover ? 'flex' : 'none'}}
                         placeholder="Vehicle Type"
+                        value={this.state.vehicle}
                         onChangeText={(text) => this.setState({
                                     vehicle: text,
                                     vehicleError: validateStr("Vehicle", text, 100)
@@ -198,6 +220,7 @@ class RegistrationScreen extends React.Component {
                     <TextInput
                         style={{height: 40, width: "100%", marginTop:10, marginBottom:5, display: isMover ? 'flex' : 'none'}}
                         placeholder="Payment Types Accepted"
+                        value={this.state.payment}
                         onChangeText={(text) => this.setState({
                                     payment: text,
                                     paymentError: validateStr("Payment", text, 100)
@@ -208,11 +231,15 @@ class RegistrationScreen extends React.Component {
 
                     <TouchableOpacity
                         style={{alignItems: "center"}}
-                        onPress={() => navigate("Camera")}
+                        onPress={() => {
+                            this.props.navigation.state.params.previous_data = this.state;
+                            navigate("Camera", {"previous_data": this.props.navigation.state.params.previous_data})
+
+                        }}
                     >
-                        <Text style={{height: 30, width: "90%", marginTop: 10, margin:10, display: this.state.imageData ? "none" : "flex"}}>📷 Take Profile Photo</Text>
+                        <Text style={{height: 30, width: "90%", marginTop: 20, margin:10, display: this.state.imageData ? "none" : "flex"}}>📷 Take Profile Photo</Text>
                         <Text style={styles.errorText}>{ this.state.photoError }</Text>
-                        <Text style={{height: 30, width: "90%", marginTop: 10, margin:10, display: this.state.imageData ? "flex" : "none"}}>Photo Uploaded Successfully. Tap to retake.</Text>
+                        <Text style={{height: 30, width: "90%", marginTop: 20, margin:10, display: this.state.imageData ? "flex" : "none"}}>Photo Uploaded Successfully. Tap to retake.</Text>
                         <Image source={{uri: 'data:image/png;base64,' + this.state.imageData}} style={{
                             display: this.state.imageData ? "flex" : "none",
                             width: 100,

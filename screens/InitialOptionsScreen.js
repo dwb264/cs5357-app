@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Text, View, TouchableOpacity} from 'react-native';
 import styles from './../style';
-import './../HelperFunctions';
+import { validateStr, sanitizeInput, parseResponseBody, validateInt, getPhoneFromInput } from './../HelperFunctions';
 
 export default class InitialOptionScreen extends React.Component {
 
@@ -50,7 +50,7 @@ export default class InitialOptionScreen extends React.Component {
                     <Text
                     onPress={() => {
                         userType = 'requester';
-                        navigate('Register', {"image_data": null});
+                        navigate('Register', {"image_data": null, "previous_data": null});
                     }}
                     style={{margin: 5}}
                     >Register as Requester</Text>
