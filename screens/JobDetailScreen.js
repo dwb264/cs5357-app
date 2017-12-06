@@ -3,7 +3,7 @@ import { Text, TextInput, ScrollView, View, Image, TouchableOpacity} from 'react
 import styles from './../style';
 import { validateStr, sanitizeInput, parseResponseBody, validateInt, getPhoneFromInput } from './../HelperFunctions';
 import {validatePrice} from "../HelperFunctions";
-var api = "http://127.0.0.1:8081";
+var api = "https://man-in-a-van.appspot.com";
 
 
 export default class JobDetailScreen extends React.Component {

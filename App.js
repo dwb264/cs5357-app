@@ -23,7 +23,7 @@ import './HelperFunctions';
 import {Image} from "react-native";
 
 var userType; // either mover or requester
-var api = "http://127.0.0.1:8081";
+var api = "https://man-in-a-van.appspot.com";
 var jobId = null; // Current job id; null if no current job
 
 // StackNavigator: a registry of all screens in the app
