@@ -44,7 +44,8 @@ export default class ReviewScreen extends React.Component {
                             'Thank You!',
                             'You have rated ' + this.state.data.first_name + ' ' + this.state.numStars + ' stars.',
                             [
-                                {text: 'Exit', onPress: () => navigate("Requester")},
+                                {text: 'Exit', onPress: () => navigate("Requester", {"refresh": true})},
+                                // Refresh the request form page to reset it because the job is done
                             ],
                             { cancelable: true }
                         );

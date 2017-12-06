@@ -195,7 +195,7 @@ export default class JobDetailScreen extends React.Component {
 
                 <View style={[styles.grayFooter, {display: this.state.placed ? "flex" : "none"}]}>
                     <Text
-                        style={{margin:10, fontSize:30, color: "#00796B"}}
+                        style={{margin:10, fontSize:20, color: "#00B0FF", fontWeight: "bold"}}
                     >Offer placed!</Text>
                     <Text>You have offered to do this job at {this.state.offerTime} for ${this.state.offerAmount}.</Text>
                     <Text

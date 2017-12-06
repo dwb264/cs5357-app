@@ -29,6 +29,10 @@ class MoverList extends React.Component {
             if (response.status === 200) {
                 response = parseResponseBody(response);
 
+                if (response === null) {
+                    console.log(response);
+                }
+
                 // If there is an open job, get the offers
 
                 if (response) {

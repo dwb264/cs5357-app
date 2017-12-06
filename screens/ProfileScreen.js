@@ -18,10 +18,11 @@ export default class ProfileScreen extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            // TODO: get profile photo as well
+            defaultPhoto: require("./../img/jeff.png"),
+
             firstName: "",
             lastName: "",
-            profilePhoto: require("./../img/jeff.png"),
+            profilePhoto: null,
             username: "",
             password: "",
             zipCode: "",
@@ -70,11 +71,11 @@ export default class ProfileScreen extends React.Component {
                         vehicle: response.vehicle,
                         payments: response.payment,
                         validatedPhone: response["verified_phone"],
+                        profilePhoto: response.photo,
 
                         newFirstName: response.first_name,
                         newLastName: response.last_name,
                         newUsername: response.username,
-                        newPassword: response.password,
                         newZipCode: response.zipcode,
                         newVehicle: response.vehicle,
                         newPayments: response.payment,
@@ -92,17 +93,21 @@ export default class ProfileScreen extends React.Component {
         const isMover = this.state.userType == 'mover' ? true : false;
 
         const updateProfile = () => {
-            // TODO: Validate form and post data to DB
-            var validData = {};
 
             this.setState({
                 firstNameError: validateStr("First name", this.state.newFirstName, 100),
                 lastNameError: validateStr("Last name", this.state.newLastName, 100),
                 usernameError: validateStr("Username", this.state.newUsername, 50),
-                zipcodeError: validateInt("Zipcode", this.state.newZipCode, 5),
-                vehicleError: validateStr("Vehicle", this.state.newVehicle, 100),
-                paymentError: validateStr("Payment", this.state.newPayments, 100),
             }, () => {
+
+                if (this.state.userType === 'mover') {
+                    this.setState({
+                        zipcodeError: validateInt("Zipcode", this.state.newZipCode, 5),
+                        vehicleError: validateStr("Vehicle", this.state.newVehicle, 100),
+                        paymentError: validateStr("Payment", this.state.newPayments, 100),
+                    });
+                }
+
 
                 if (this.state.firstNameError == ""
                     && this.state.lastNameError == ""
@@ -131,16 +136,15 @@ export default class ProfileScreen extends React.Component {
                         body: JSON.stringify(validData),
                     }).then(response => {
                         if (response.status === 200) {
-                            response = parseResponseBody(response);
                             this.setState({
-                                firstName: response.first_name,
-                                lastName: response.last_name,
-                                username: response.username,
-                                zipCode: response.zipcode,
-                                vehicle: response.vehicle,
-                                payments: response.payment,
+                                firstName: this.state.newFirstName,
+                                lastName: this.state.newLastName,
+                                username:this.state.newUsername,
+                                zipCode: this.state.newZipCode,
+                                vehicle: this.state.newVehicle,
+                                payments: this.state.newPayments,
                             });
-
+                            alert("Changes saved successfully.");
                         } else {
                             throw new Error('Something went wrong on api server!');
                         }
@@ -163,7 +167,6 @@ export default class ProfileScreen extends React.Component {
                         firstName: response.first_name,
                         lastName: response.last_name,
                         username: response.username,
-                        password: response.password,
                         zipCode: response.zipcode,
                         vehicle: response.vehicle,
                         payments: response.payment,
@@ -220,9 +223,18 @@ export default class ProfileScreen extends React.Component {
                     <View style={styles.containerTop}>
 
                         <TouchableOpacity style={{alignItems: "center"}}
-                                          onPress={() => updateProfilePhoto()}>
-                            <Image source={this.state.profilePhoto} style={{margin: 10, width: 100, height: 100}}/>
-                            <Text style={{color: "#999"}}>Tap to update profile photo</Text>
+                                          /* No updating for now
+                                          onPress={() => updateProfilePhoto()} */>
+
+                            <Image source={this.state.defaultPhoto}
+                                   style={{margin: 10, width: 100, height: 100,
+                                       borderRadius: 50, display: this.state.profilePhoto ? "none" : "flex"}}/>
+
+                            <Image source={{uri: "data:image/png;base64," + this.state.profilePhoto}}
+                                   style={{margin: 10, width: 100, height: 100,
+                                       borderRadius: 50, display: this.state.profilePhoto ? "flex" : "none"}}/>
+
+                            { /* <Text style={{color: "#999"}}>Tap to update profile photo</Text> */ }
                         </TouchableOpacity>
 
                         <View style={{width: "90%", alignItems: "center", marginTop: 30}}>
@@ -265,6 +277,7 @@ export default class ProfileScreen extends React.Component {
                                 <Text style={[styles.errorText, {marginTop: -10}]}>{this.state.usernameError}</Text>
                             </View>
 
+                        { /* You can't change your password sorry
 
                         <View style={{width: "90%", alignItems: "center", marginTop: 10, marginBottom: 30}}>
                             <View style={{ flexDirection: "row", alignItems: "flex-start", height: 40}}>
@@ -279,6 +292,8 @@ export default class ProfileScreen extends React.Component {
                                 </View>
                                 <Text style={[styles.errorText, {marginTop: -10}]}>{this.state.passwordError}</Text>
                             </View>
+                            */
+                        }
 
                         <View style={{width: "90%", display: isMover ? 'flex' : 'none', alignItems: "center", marginTop: 10}}>
                             <View style={{ flexDirection: "row", alignItems: "flex-start", height: 40}}>

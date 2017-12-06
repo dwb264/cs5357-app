@@ -248,7 +248,6 @@ def verifyCode():
 
     if phone is None:
         raise BadRequest("No phone number available")
-
     
     resp = authy_api.phones.verification_check(phone, 1, code)
 
@@ -522,7 +521,7 @@ def acceptOffer():
     if job is None:
         raise BadRequest("Invalid Job ID")
 
-    if job["user"] != session.get('user')["$oid"]:
+    if job["user"] != ObjectId(session.get('user')["$oid"]):
         raise Unauthorized()
 
     if job["job_status"] != "Open":

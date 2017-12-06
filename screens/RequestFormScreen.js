@@ -63,7 +63,38 @@ class RequestFormScreen extends React.Component {
                         description: response.description,
                         submitted: true,
                     })
-                    jobId = (response._id["$oid"]);
+                    this.state.jobId = (response._id["$oid"]);
+                }
+            } else {
+                console.log(JSON.stringify(response));
+                throw new Error('Something went wrong on api server!');
+            }
+        });
+    }
+
+    componentDidFocus() {
+        // See if the user has a currently open job, and if so, load it
+        fetch(api + '/jobs', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+        }).then(response => {
+            if (response.status === 200) {
+                response = parseResponseBody(response);
+                if (response) {
+                    this.setState({
+                        startAddress: response.start_address,
+                        endAddress: response.end_address,
+                        startTime: response.start_time,
+                        endTime: response.end_time,
+                        maximumPrice: response.max_price,
+                        description: response.description,
+                        submitted: true,
+                    })
+                    this.state.jobId = (response._id["$oid"]);
                 }
             } else {
                 console.log(JSON.stringify(response));
@@ -84,7 +115,7 @@ class RequestFormScreen extends React.Component {
                 endAddressError: validateStr("End address", this.state.endAddress, 100),
                 startTimeError: validateStr("Start time", this.state.startTime, 50),
                 endTimeError: validateStr("End time", this.state.endTime, 50),
-                maximumPriceError: validatePrice("Max price", this.state.endTime, 50),
+                maximumPriceError: validatePrice("Max price", this.state.maximumPrice, 50),
                 descriptionError: validateStr("Description", this.state.description, 500),
             }, () => {
 
@@ -151,7 +182,7 @@ class RequestFormScreen extends React.Component {
                                 placeholder="1 Main St, Anytown, NY, 10101"
                                 onChangeText={(text) => this.setState({startAddress: text})}
                             /><Text style={styles.errorText}>{ this.state.startAddressError } </Text>
-                            <Text style={{ display: this.state.submitted ? "flex" : "none" }}>{ this.state.startAddress } </Text>
+                            <Text style={{ fontSize: 16, display: this.state.submitted ? "flex" : "none" }}>{ this.state.startAddress } </Text>
                         </View>
 
                         <View style={{height: 70}}>
@@ -161,7 +192,7 @@ class RequestFormScreen extends React.Component {
                                 placeholder="1 Main St, Anytown, NY, 10101"
                                 onChangeText={(text) => this.setState({endAddress: text})}
                             /><Text style={styles.errorText}>{ this.state.endAddressError } </Text>
-                            <Text style={{ display: this.state.submitted ? "flex" : "none" }}>{ this.state.endAddress } </Text>
+                            <Text style={{ fontSize: 16, display: this.state.submitted ? "flex" : "none" }}>{ this.state.endAddress } </Text>
                         </View>
 
                         <View style={{flex:0, flexDirection: "row", justifyContent: "space-between", width: "95%"}}>
@@ -173,7 +204,7 @@ class RequestFormScreen extends React.Component {
                                     onFocus={() => this.setState({timePickerVisible: true, activeField: "startTime"})}
                                     onChangeText={(text) => this.setState({startTime: text})}
                                 /><Text style={styles.errorText}>{ this.state.startTimeError } </Text>
-                                <Text style={{ display: this.state.submitted ? "flex" : "none" }}>{ this.state.startTime } </Text>
+                                <Text style={{ fontSize: 16, display: this.state.submitted ? "flex" : "none" }}>{ this.state.startTime } </Text>
                             </View>
 
                             <View style={{height: 70, width: "45%"}}>
@@ -184,7 +215,7 @@ class RequestFormScreen extends React.Component {
                                     onFocus={() => this.setState({timePickerVisible: true, activeField: "endTime"})}
                                     onChangeText={(text) => this.setState({endTime: text})}
                                 /><Text style={styles.errorText}>{ this.state.endTimeError } </Text>
-                                <Text style={{ display: this.state.submitted ? "flex" : "none" }}>{ this.state.endTime } </Text>
+                                <Text style={{ fontSize: 16, display: this.state.submitted ? "flex" : "none" }}>{ this.state.endTime } </Text>
                             </View>
                         </View>
 
@@ -195,7 +226,7 @@ class RequestFormScreen extends React.Component {
                                 placeholder="500.00"
                                 onChangeText={(text) => this.setState({maximumPrice: text})}
                             /><Text style={styles.errorText}>{ this.state.maximumPriceError } </Text>
-                            <Text style={{ display: this.state.submitted ? "flex" : "none" }}>{ this.state.maximumPrice } </Text>
+                            <Text style={{ fontSize: 16, display: this.state.submitted ? "flex" : "none" }}>{ this.state.maximumPrice } </Text>
                         </View>
 
                         <View style={{height: 70}}>
@@ -205,12 +236,10 @@ class RequestFormScreen extends React.Component {
                                 placeholder="Volume of items, type of items, etc"
                                 onChangeText={(text) => this.setState({description: text})}
                             /><Text style={styles.errorText}>{ this.state.descriptionError } </Text>
-                            <Text style={{ display: this.state.submitted ? "flex" : "none" }}>{ this.state.description } </Text>
+                            <Text style={{ fontSize: 16, display: this.state.submitted ? "flex" : "none" }}>{ this.state.description } </Text>
                         </View>
 
                     </View>
-
-
 
 
 
@@ -224,8 +253,8 @@ class RequestFormScreen extends React.Component {
                     ><Text style={{color: "#fff", fontSize: 20}}>Find Movers</Text></TouchableOpacity>
 
                     <View style={{display: this.state.submitted ? "flex" : "none", alignItems: "center"}}>
-                        <Text style={{margin:10, fontSize:20, color: "#00796B" }}>Job Submitted Successfully!</Text>
-                        <Text style={{marginTop:10, margin: 20, marginBottom: 30, fontSize:14, color: "#666"}}>Check the movers list to see if any movers have placed an offer.</Text>
+                        <Text style={{margin:10, fontSize:20, fontWeight: "bold", color: "#00B0FF" }}>Job Submitted Successfully!</Text>
+                        <Text style={{marginTop:10, margin: 20, marginBottom: 30, fontSize:14, color: "#666", textAlign: "center"}}>Check the movers list to see if any movers have placed an offer.</Text>
                     </View>
                 </View>
 

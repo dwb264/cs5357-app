@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, Text, View, TouchableOpacity} from 'react-native';
+import {Button, Text, View, TouchableOpacity, Image, ScrollView} from 'react-native';
 import styles from './../style';
 import { validateStr, sanitizeInput, parseResponseBody, validateInt, getPhoneFromInput } from './../HelperFunctions';
 var api = "http://127.0.0.1:8081";
@@ -16,6 +16,7 @@ export default class MoverDetailScreen extends React.Component {
             offerData: this.props.navigation.state.params.offerData,
             moverData: [],
             accepted: false,
+            defaultPhoto: require("./../img/jeff.png")
         }
     }
 
@@ -66,8 +67,15 @@ export default class MoverDetailScreen extends React.Component {
         return (
 
             <View style={{flex: 1, justifyContent: "space-between"}}>
+
                 <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff"}}>
-                    { /* <Image source={this.state.data.photo} style={{marginTop: 50, width: 100, height: 100}}/> */ }
+                    <Image source={this.state.defaultPhoto}
+                                   style={{margin: 10, width: 100, height: 100,
+                                       borderRadius: 50, display: this.state.moverData.photo ? "none" : "flex"}}/>
+
+                            <Image source={{uri: "data:image/png;base64," + this.state.moverData.photo}}
+                                   style={{margin: 10, width: 100, height: 100,
+                                       borderRadius: 50, display: this.state.moverData.photo ? "flex" : "none"}}/>
                     <Text style={{
                         height: 30,
                         width: "90%",
@@ -97,19 +105,21 @@ export default class MoverDetailScreen extends React.Component {
 
                 <View style={[styles.grayFooter, {display: this.state.accepted ? "flex" : "none"}]}>
                     <Text
-                        style={{margin:10, fontWeight: "bold", fontSize:20, color: "#00796B"}}
+                        style={{margin:10, fontWeight: "bold", fontSize:20, color: "#00B0FF"}}
                     >Offer Accepted!</Text>
                     <Text
                         style={{marginTop:10, margin: 20, marginBottom: 30, fontSize:16, textAlign: 'center', color: "#666"}}
                     >Don&#8217;t forget to contact {this.state.moverData.first_name} to confirm details and be sure to pay when the job is done!</Text>
 
-                    <Button
+                    <TouchableOpacity style={styles.bigButton}
                         onPress={() => navigate("Review", {moverData: this.state.moverData}) }
-                        title="Job Done? Leave a Review!"
-                        color="#00796B"
-                    />
+                    >
+                        <Text style={{color: "#fff"}}>Job Done? Leave a Review!</Text>
+                    </TouchableOpacity>
                 </View>
+
             </View>
+
         );
     }
 }
