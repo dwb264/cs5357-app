@@ -7,6 +7,12 @@ var api = "http://127.0.0.1:8081";
 export default class ProfileScreen extends React.Component {
     static navigationOptions = {
         tabBarLabel: 'Profile',
+        tabBarIcon: () => (
+            <Image
+                source={require('./../img/icon-profile.png')}
+                style={{width: 30, height: 30}}
+            />
+        ),
     };
 
     constructor(props) {

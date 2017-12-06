@@ -46,7 +46,7 @@ export default StyleSheet.create({
         paddingBottom: 20,
     },
     bigButton: {
-        backgroundColor: "#00796B",
+        backgroundColor: "#00b0ff",
         width: "90%",
         padding: 10,
         margin: 10,
@@ -77,7 +77,7 @@ export default StyleSheet.create({
         marginTop: 10,
     },
     errorText: {
-        color: '#b20808',
+        color: '#ff3d00',
         fontSize: 10,
     },
     navigation: {

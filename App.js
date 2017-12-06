@@ -20,6 +20,7 @@ import RequestFormScreen from './screens/RequestFormScreen';
 import ReviewScreen from './screens/ReviewScreen';
 import styles from './style';
 import './HelperFunctions';
+import {Image} from "react-native";
 
 var userType; // either mover or requester
 var api = "http://127.0.0.1:8081";
@@ -43,15 +44,24 @@ const App = StackNavigator({
             Review: { screen: ReviewScreen },
         }),
             navigationOptions: ({ navigation }) => ({
-            header: null,
+                header: null,
+                tabBarIcon: () => (
+                    <Image
+                     source={require('./img/icon-movers.png')}
+                     style={{width: 30, height: 30}}
+                />
+                ),
+
         }),
     }
     }, {
         tabBarPosition: 'bottom',
         tabBarOptions: {
             style: {
-                backgroundColor: '#666',
-            }
+                backgroundColor: '#0091EA',
+            },
+                activeTintColor: "#fff",
+                inactiveTintColor: "#b8b8b8"
         }
     }), navigationOptions: ({ navigation }) => ({
             header: null,
@@ -64,17 +74,28 @@ const App = StackNavigator({
             JobDetail: { screen: JobDetailScreen},
         }), navigationOptions: ({ navigation }) => ({
             header: null,
+            tabBarIcon: () => (
+                    <Image
+                     source={require('./img/icon-jobs.png')}
+                     style={{width: 30, height: 30}}
+                />
+            ),
         }), initialRouteName: 'Jobs'
     }
     }, {
         tabBarPosition: 'bottom',
         tabBarOptions: {
             style: {
-                backgroundColor: '#666',
-            }
+                backgroundColor: '#0091EA',
+            },
+
+                activeTintColor: "#fff",
+                inactiveTintColor: "#b8b8b8",
+
         }
     }), navigationOptions: ({ navigation }) => ({
             header: null,
+
         }),
     },
 

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Text, TextInput, ScrollView, View, TouchableOpacity} from 'react-native';
+import {Text, TextInput, ScrollView, View, TouchableOpacity, Image} from 'react-native';
 import DateTimePicker from 'react-native-modal-datetime-picker';
 import styles from './../style';
 import { validateStr, sanitizeInput, parseResponseBody, validateInt, getPhoneFromInput } from './../HelperFunctions';
@@ -9,6 +9,12 @@ class RequestFormScreen extends React.Component {
 
     static navigationOptions = {
         tabBarLabel: 'Request',
+        tabBarIcon: () => (
+            <Image
+                source={require('./../img/icon-request.png')}
+                style={{width: 30, height: 30}}
+            />
+        ),
     };
 
     constructor(props) {
