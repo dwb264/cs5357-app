@@ -67,9 +67,8 @@ class JobList extends React.Component {
                     <View style={{width: "90%", paddingTop: 20, paddingBottom: 20, flexDirection: "row", alignItems: "flex-start"}}>
                         { /* <Image source={item.values.photo} style={{maxWidth: 80, maxHeight: 60}}/> */ }
                         <View style={{marginLeft: 10}}>
-                        <Text style={{fontSize: 16, fontWeight: "bold", color: "#333"}}>{item.values.description}</Text>
-                            <Text>Max ${item.values.max_price}</Text>
-                            <Text>Start at {item.values.start_time}</Text>
+                        <Text style={{fontSize: 30, fontWeight: "bold", color: "#00B0FF"}}>{item.values.description}</Text>
+                            <Text>Max ${item.values.max_price} &bull; Start at {item.values.start_time}</Text>
                         </View>
                     </View>
 

@@ -25,7 +25,7 @@ export default class JobDetailScreen extends React.Component {
             timeError: "",
             amountError: "",
 
-            headerphoto: require("./../img/boxes.jpg")
+            headerphoto: require("./../img/job-details.png")
 
         }
     }
