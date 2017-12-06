@@ -101,6 +101,7 @@ export default class JobDetailScreen extends React.Component {
                         if (response.status === 201) {
                             this.setState({placed: true});
                         } else {
+                            console.log(response);
                             throw new Error('Something went wrong on api server!');
                         }
                     });

@@ -132,7 +132,7 @@ export default class ProfileScreen extends React.Component {
                         headers: {
                             'Accept': 'application/json',
                             'Content-Type': 'application/json'
-                        }, credentials: 'same-origin',
+                        },
                         body: JSON.stringify(validData),
                     }).then(response => {
                         if (response.status === 200) {
