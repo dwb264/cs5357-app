@@ -4,3 +4,10 @@ node_modules/
 npm-debug.*
 .idea/
 env/
+.babelrc
+.buckconfig
+.flowconfig
+.gitattributes
+.watchmanconfig
+android/
+ios/

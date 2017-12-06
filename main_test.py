@@ -1,3 +1,5 @@
+from flask import session, Response
+
 import main
 #from main import app
 import urllib2
