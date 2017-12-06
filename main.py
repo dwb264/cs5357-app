@@ -358,7 +358,7 @@ def create_job():
                     'description': body.get("description"),
                     'job_status':'Open'}
 
-    job_record.update({'user': session['user']['$oid']})
+    job_record.update({'user': ObjectId(session.get('user')['$oid'])})
 
     # Insert into the mongo collection
     res = jobs.insert_one(job_record)
