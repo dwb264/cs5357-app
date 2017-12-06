@@ -15,7 +15,29 @@ class EnterCodeScreen extends React.Component {
         this.state = {
             code: '',
             codeError: '',
+            userType: '',
         };
+    }
+
+    componentDidMount() {
+        fetch(api + '/profile', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin',
+        }).then(response => {
+            if (response.status === 200) {
+                response = parseResponseBody(response);
+                this.setState({
+                    userType: response.type
+                });
+            } else {
+                console.log(JSON.stringify(response));
+                throw new Error('Something went wrong on api server!');
+            }
+        });
     }
 
     render() {
@@ -39,7 +61,8 @@ class EnterCodeScreen extends React.Component {
                         body: JSON.stringify(validData)
                     }).then(response => {
                         if (response.status === 200) {
-                            if (userType == 'requester') {
+                            console.log(response);
+                            if (this.state.userType == 'requester') {
                                 navigate('Requester');
                             } else {
                                 navigate('Mover');

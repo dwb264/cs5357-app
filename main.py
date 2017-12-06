@@ -54,8 +54,6 @@ moverReviews = db['mover_reviews']
 jobs = db['jobs']
 offers = db['offers']
 jobPhotos = db['job_photos']
-users = db['users']
-
 
 #######################
 ##Revised API endpoints
@@ -106,14 +104,15 @@ def add_new_user():
             raise BadRequest("Missing vehicle details")
 
     if body.get("photo") is None:
-        raise BadRequest("Missing photo")
+        #raise BadRequest("Missing photo")
+        data = None
     else:
         #data = imageStorage(body.get("photo"))
         data = body.get("photo")
 
     password_hash = security.generate_password_hash(body.get('password'))
 
-    newUser = { "type": body.get("type"),
+    new_user = { "type": body.get("type"),
                 "first_name": body.get("first_name"),
                 "last_name":body.get("last_name"),
                 "username":body.get("username"),
@@ -128,14 +127,15 @@ def add_new_user():
     if users.find_one({"username": body.get("username")}):
         raise NotFound('Username already exists')
     else:
-        users.insert_one(newUser)
+        users.insert_one(new_user)
 
     user = users.find_one({'username': body.get('username')})
     serializable_user_obj = json.loads(json_util.dumps(user))
-    session['user'] = serializable_user_obj
-    print session['user']
 
-    return Response(status=201)
+    session['user'] = serializable_user_obj["_id"]
+
+    # returning serializable_user_obj is necessary to prevent 401 error for users with profile pics
+    return Response(serializable_user_obj, status=201)
 
 def imageStorage(photo):
     image = Image.open(photo)
@@ -168,7 +168,7 @@ def update():
             resp =authy_api.phones.verification_start(number, 1, via='sms')
 
             if resp.content["success"]:
-                users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'phone':number}})
+                users.update_one({'_id':ObjectId(session.get('user')["$oid"])},{'$set':{'phone':number}})
                 
             else:
                 return Response("Invalid number",400)
@@ -178,23 +178,23 @@ def update():
 
 
     if body.get("first_name"):
-        users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'first_name':body.get("first_name")}})
+        users.update_one({'_id':ObjectId(session.get('user')["$oid"])},{'$set':{'first_name':body.get("first_name")}})
 
     if body.get("last_name"):
-        users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'last_name':body.get("last_name")}})
+        users.update_one({'_id':ObjectId(session.get('user')["$oid"])},{'$set':{'last_name':body.get("last_name")}})
 
     if body.get("zipcode"):
-        users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'zipcode':body.get("zipcode")}})
+        users.update_one({'_id':ObjectId(session.get('user')["$oid"])},{'$set':{'zipcode':body.get("zipcode")}})
 
     if body.get("password"):
         password_hash = security.generate_password_hash(body.get('password'))
-        users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'password':password_hash}})
+        users.update_one({'_id':ObjectId(session.get('user')["$oid"])},{'$set':{'password':password_hash}})
 
     if body.get("payment"):
-        users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'payment':body.get("payment")}})
+        users.update_one({'_id':ObjectId(session.get('user')["$oid"])},{'$set':{'payment':body.get("payment")}})
 
     if body.get("vehicle"):
-        users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'vehicle':body.get("vehicle")}})
+        users.update_one({'_id':ObjectId(session.get('user')["$oid"])},{'$set':{'vehicle':body.get("vehicle")}})
 
     serializable_user_obj = json_util.dumps(session.get('user'))
 
@@ -208,7 +208,9 @@ def get_profile():
     if session.get('user') is None:
         raise Unauthorized()
 
-    response = jsonify(session.get('user'))
+    user = users.find_one({'_id':ObjectId(session.get('user')['$oid'])})
+
+    response = json_util.dumps(user)
     return response
 
 #the data passed should come from database - check the earlier implementation of the API
@@ -242,7 +244,7 @@ def verifyCode():
 
     code = body.get('code')
 
-    phone = users.find_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])})["phone"]
+    phone = users.find_one({'_id':ObjectId(session.get('user')["$oid"])})["phone"]
 
     if phone is None:
         raise BadRequest("No phone number available")
@@ -251,12 +253,13 @@ def verifyCode():
     resp = authy_api.phones.verification_check(phone, 1, code)
 
     if resp.content["success"]:
-        users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'verified_phone':True}})
+        users.update_one({'_id':ObjectId(session.get('user')["$oid"])},{'$set':{'verified_phone':True}})
 
-        user = users.find_one({'username': session.get('user')['username']})
+        user = users.find_one({'_id':ObjectId(session.get('user')["$oid"])})
 
         serializable_user_obj = json.loads(json_util.dumps(user))
-        session['user'] = serializable_user_obj
+        session['user'] = serializable_user_obj['_id']
+
         return Response(200)
     else:
         raise BadRequest("Invalid code")
@@ -297,7 +300,7 @@ def login():
     # CLOSE to json, but not actually JSON (principally the ObjectId is not JSON serializable)
     # so we just convert to json and use `loads` to get a dict
     serializable_user_obj = json.loads(json_util.dumps(user))
-    session['user'] = serializable_user_obj
+    session['user'] = serializable_user_obj["_id"]
 
     return Response(status=200)
 
@@ -355,7 +358,7 @@ def create_job():
                     'description': body.get("description"),
                     'job_status':'Open'}
 
-    job_record.update({'user': session['user']['_id']['$oid']})
+    job_record.update({'user': session['user']['$oid']})
 
     # Insert into the mongo collection
     res = jobs.insert_one(job_record)
@@ -367,8 +370,10 @@ def get_jobs():
     if session.get('user') is None:
         raise Unauthorized()
 
-    if session.get('user')['type'] == "requester":
-        job = jobs.find_one({'user': session['user']['_id']['$oid'], 'job_status': 'Open'})
+    user = users.find_one({'_id': ObjectId(session.get('user')['$oid'])})
+
+    if user['type'] == "requester":
+        job = jobs.find_one({'user': ObjectId(session.get('user')['$oid']), 'job_status': 'Open'})
         res = json_util.dumps(job)
         return Response(res, 200) # will return None if the user has no open job, this is ok
     else:
@@ -450,7 +455,7 @@ def addOffer():
     job_id = body.get('job_id')
     price =  body.get('price')
     start_time = body.get('start_time')
-    userId = session.get('user')["_id"]["$oid"]
+    userId = session.get('user')["$oid"]
 
     job = jobs.find_one({"_id":ObjectId(job_id)})
 
@@ -517,7 +522,7 @@ def acceptOffer():
     if job is None:
         raise BadRequest("Invalid Job ID")
 
-    if job["user"] != session.get('user')["_id"]["$oid"]:
+    if job["user"] != session.get('user')["$oid"]:
         raise Unauthorized()
 
     if job["job_status"] != "Open":

@@ -111,7 +111,7 @@ class RegistrationScreen extends React.Component {
                         body: JSON.stringify(validData)
                     }).then(response => {
                         if (response.status === 201) {
-                            navigate("GetCode");
+                            navigate("GetCode", {user_type: this.state.userType});
                         } else {
                             console.log(JSON.stringify(response));
                             throw new Error('Something went wrong on api server!');
@@ -265,7 +265,7 @@ class RegistrationScreen extends React.Component {
                     </View>
                     <View style={styles.grayFooter}>
                     <TouchableOpacity
-                        onPress={() => submitForm() ? navigate('GetCode') : false}
+                        onPress={() => submitForm() ? navigate('GetCode', {'user_type': this.state.userType}) : false}
                         style={styles.bigButton}
                     >
                         <Text style={{color: "#fff", fontSize: 20}}>Create Account</Text>

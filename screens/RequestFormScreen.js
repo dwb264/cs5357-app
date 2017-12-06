@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import {Text, TextInput, ScrollView, View, TouchableOpacity, Image} from 'react-native';
 import DateTimePicker from 'react-native-modal-datetime-picker';
 import styles from './../style';
-import { validateStr, sanitizeInput, parseResponseBody, validateInt, getPhoneFromInput } from './../HelperFunctions';
+import { validateStr, parseResponseBody, validateInt, getPhoneFromInput, validatePrice } from './../HelperFunctions';
 var api = "http://127.0.0.1:8081";
 
 class RequestFormScreen extends React.Component {
@@ -142,9 +142,9 @@ class RequestFormScreen extends React.Component {
 
                 <ScrollView>
 
-                    <View style={styles.innerContainer}>
+                    <View style={{width: "90%", marginLeft: "5%"}}>
 
-                        <View style={styles.formField}>
+                        <View style={{height: 70,}}>
                             <Text style={styles.jobDetailDesc}>Start Address</Text>
                             <TextInput
                                 style={{ display: this.state.submitted ? "none" : "flex" }}
@@ -154,7 +154,7 @@ class RequestFormScreen extends React.Component {
                             <Text style={{ display: this.state.submitted ? "flex" : "none" }}>{ this.state.startAddress } </Text>
                         </View>
 
-                        <View style={styles.formField}>
+                        <View style={{height: 70}}>
                             <Text style={styles.jobDetailDesc}>End Address</Text>
                             <TextInput
                                 style={{ display: this.state.submitted ? "none" : "flex" }}
@@ -164,11 +164,11 @@ class RequestFormScreen extends React.Component {
                             <Text style={{ display: this.state.submitted ? "flex" : "none" }}>{ this.state.endAddress } </Text>
                         </View>
 
-                        <View style={{flex:0, flexDirection: "row", justifyContent: "space-between", width: "90%"}}>
-                            <View style={{height: 40, width: "45%", marginTop:10, marginBottom:10}}>
+                        <View style={{flex:0, flexDirection: "row", justifyContent: "space-between", width: "95%"}}>
+                            <View style={{height: 70, width: "45%"}}>
                                 <Text style={styles.jobDetailDesc}>Start Time</Text>
                                 <TextInput
-                                    style={{ display: this.state.submitted ? "none" : "flex" }}
+                                    style={{ display: this.state.submitted ? "none" : "flex"}}
                                     placeholder="1:00pm"
                                     onFocus={() => this.setState({timePickerVisible: true, activeField: "startTime"})}
                                     onChangeText={(text) => this.setState({startTime: text})}
@@ -176,7 +176,7 @@ class RequestFormScreen extends React.Component {
                                 <Text style={{ display: this.state.submitted ? "flex" : "none" }}>{ this.state.startTime } </Text>
                             </View>
 
-                            <View style={{height: 40, width: "45%", marginTop:10, marginBottom:10}}>
+                            <View style={{height: 70, width: "45%"}}>
                                 <Text style={styles.jobDetailDesc}>End Time</Text>
                                 <TextInput
                                     style={{ display: this.state.submitted ? "none" : "flex" }}
@@ -188,7 +188,7 @@ class RequestFormScreen extends React.Component {
                             </View>
                         </View>
 
-                        <View style={styles.formField}>
+                        <View style={{height: 70}}>
                             <Text style={styles.jobDetailDesc}>Maximum Price</Text>
                             <TextInput
                                 style={{ display: this.state.submitted ? "none" : "flex" }}
@@ -198,7 +198,7 @@ class RequestFormScreen extends React.Component {
                             <Text style={{ display: this.state.submitted ? "flex" : "none" }}>{ this.state.maximumPrice } </Text>
                         </View>
 
-                        <View style={styles.formField}>
+                        <View style={{height: 70}}>
                             <Text style={styles.jobDetailDesc}>Description of the job</Text>
                             <TextInput
                                 style={{ display: this.state.submitted ? "none" : "flex" }}

@@ -37,8 +37,6 @@ class LoginScreen extends React.Component {
                     "password": this.state.password,
                 };
 
-                console.log(validData);
-
                 fetch(api + '/login', {
                     method: 'POST',
                     headers: {
@@ -46,6 +44,9 @@ class LoginScreen extends React.Component {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify(validData)
+                }).then(response => {
+                    console.log(response);
+                    return response;
                 }).then(response => {
                     if (response.status === 200) {
                         if (this.state.userType == 'requester') {

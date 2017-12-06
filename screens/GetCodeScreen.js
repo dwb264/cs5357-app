@@ -15,7 +15,14 @@ class GetCodeScreen extends React.Component {
         this.state = {
             phone: '',
             phoneError: '',
+            userType: '',
         };
+    }
+
+    componentDidMount() {
+        this.setState({
+            userType: this.props.navigation.state.params.user_type,
+        })
     }
 
     render() {
@@ -77,7 +84,7 @@ class GetCodeScreen extends React.Component {
 
                 <TouchableOpacity
                     onPress={() => {
-                        if (userType == 'requester') {
+                        if (this.state.userType == 'requester') {
                             navigate('Requester');
                         } else {
                             navigate('Mover');

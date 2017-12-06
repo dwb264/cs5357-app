@@ -9,8 +9,8 @@ class MoverList extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-
-            data: []
+            data: [],
+            jobId: ''
         }
     }
 
@@ -33,35 +33,37 @@ class MoverList extends React.Component {
 
                 if (response) {
 
-                    jobId = (response._id["$oid"]);
-                    // Get jobs
-                    fetch(api + "/getOffers/" + jobId, {
-                        method: 'GET',
-                        headers: {
-                            'Accept': 'application/json',
-                        }, credentials: 'same-origin',
+                    this.setState({jobId: response._id["$oid"]}, () => {
+                        // Get jobs
+                        fetch(api + "/getOffers/" + this.state.jobId, {
+                            method: 'GET',
+                            headers: {
+                                'Accept': 'application/json',
+                            }, credentials: 'same-origin',
 
-                    }).then(jobResponse => {
-                        if (jobResponse.status === 200) {
-                            jobResponse = parseResponseBody(jobResponse);
+                        }).then(jobResponse => {
+                            if (jobResponse.status === 200) {
+                                jobResponse = parseResponseBody(jobResponse);
 
-                            console.log(jobResponse);
+                                console.log(jobResponse);
 
-                            var responsedata = [];
+                                var responsedata = [];
 
-                            for (var i = 0; i < jobResponse.length; i++) {
-                                responsedata.push({
-                                    "key": i,
-                                    "values": jobResponse[i]
-                                });
+                                for (var i = 0; i < jobResponse.length; i++) {
+                                    responsedata.push({
+                                        "key": i,
+                                        "values": jobResponse[i]
+                                    });
+                                }
+
+                                this.setState({data: responsedata});
+                                console.log(responsedata);
+                            } else {
+                                throw new Error('Something went wrong on api server!');
                             }
+                        });
+                    })
 
-                            this.setState({data: responsedata});
-                            console.log(responsedata);
-                        } else {
-                            throw new Error('Something went wrong on api server!');
-                        }
-                    });
                     // Get mover info for each job
                 }
             } else {
@@ -77,8 +79,8 @@ class MoverList extends React.Component {
 
         const refreshList = () => {
             console.log(this.state.data);
-            if (jobId !== null) {
-                fetch(api + "/getOffers/" + jobId, {
+            if (this.state.jobId !== '') {
+                fetch(api + "/getOffers/" + this.state.jobId, {
                     method: 'GET',
                     headers: {
                         'Accept': 'application/json',
@@ -87,7 +89,6 @@ class MoverList extends React.Component {
                     if (response.status === 200) {
                         response = parseResponseBody(response);
                         var responsedata = [];
-
                             for (var i = 0; i < response.length; i++) {
                                 responsedata.push({
                                     "key": i,
@@ -100,6 +101,8 @@ class MoverList extends React.Component {
                         throw new Error('Something went wrong on api server!');
                     }
                 });
+            } else {
+                alert("You need to make a request in order to get offers!");
             }
         };
 

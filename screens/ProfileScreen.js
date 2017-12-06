@@ -47,7 +47,7 @@ export default class ProfileScreen extends React.Component {
             vehicleError: '',
             paymentError: '',
 
-            userType: this.props.navigation.state.params.user_type,
+            userType: "",
         }
     }
 
@@ -61,6 +61,7 @@ export default class ProfileScreen extends React.Component {
             if (response.status === 200) {
                 response = parseResponseBody(response);
                 this.setState({
+                        userType: response.type,
                         firstName: response.first_name,
                         lastName: response.last_name,
                         username: response.username,
@@ -197,7 +198,18 @@ export default class ProfileScreen extends React.Component {
         return (
                 <ScrollView>
 
-                    <View style={styles.grayHeader}>
+                    <Text
+                        style={{display: this.state.validatedPhone ? 'none' : 'flex',
+                            width: "100%",
+                            backgroundColor: "yellow",
+                            padding: 5,
+                            marginTop: 24,
+                            textAlign: 'center',
+                        }}
+                        onPress={() => navigate('GetCode', {'user_type': this.state.userType})}
+                    >Phone not yet validated. Tap here to validate phone</Text>
+
+                    <View style={[styles.grayHeader, {marginTop: 0}]}>
                             <Text style={styles.h1}>{this.state.firstName}&apos;s Profile</Text>
                             <TouchableOpacity
                                 onPress={() => {logout()}} >
@@ -206,17 +218,6 @@ export default class ProfileScreen extends React.Component {
                         </View>
 
                     <View style={styles.containerTop}>
-
-                        <Text
-                            style={{display: this.state.validatedPhone ? 'none' : 'flex',
-                                width: "100%",
-                                backgroundColor: "yellow",
-                                padding: 5,
-                                marginTop: 0,
-                                textAlign: 'center',
-                            }}
-                            onPress={() => navigate('GetCode')}
-                        >Phone not yet validated. Tap here to validate phone</Text>
 
                         <TouchableOpacity style={{alignItems: "center"}}
                                           onPress={() => updateProfilePhoto()}>
