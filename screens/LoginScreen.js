@@ -16,6 +16,7 @@ class LoginScreen extends React.Component {
             username: '',
             password: '',
             error: '',
+            userType: this.props.navigation.state.params.user_type,
         };
     }
 
@@ -31,13 +32,12 @@ class LoginScreen extends React.Component {
 
             } else {
                 validData = {
-                    "type": userType,
+                    "type": this.state.userType,
                     "username": this.state.username,
                     "password": this.state.password,
                 };
 
-                // POST username and password to database
-                // TODO: start session/establish somehow that the user is logged in
+                console.log(validData);
 
                 fetch(api + '/login', {
                     method: 'POST',
@@ -48,14 +48,13 @@ class LoginScreen extends React.Component {
                     body: JSON.stringify(validData)
                 }).then(response => {
                     if (response.status === 200) {
-                        if (userType == 'requester') {
-                            navigate('Requester');
-                        } else if (userType == 'mover') {
-                            navigate('Mover');
+                        if (this.state.userType == 'requester') {
+                            navigate('Requester', {"user_type": "requester"});
+                        } else if (this.state.userType == 'mover') {
+                            navigate('Mover', {"user_type": "mover"});
                         }
                     } else {
-                        console.log(response);
-                        throw new Error('Something went wrong on api server!');
+                        this.setState({error: "User not found. Please try again."});
                     }
                 });
 
@@ -70,7 +69,7 @@ class LoginScreen extends React.Component {
                 >Welcome back!</Text>
                 <Text
                     style={{fontSize:20, color: "#666", textAlign: 'center',  margin: 10}}
-                >Login as {userType}</Text>
+                >Login as {this.state.userType}</Text>
                 <TextInput
                     style={{height: 40, width: 200, margin:10, width: "90%", textAlign: 'center'}}
                     placeholder="Username"

@@ -40,6 +40,8 @@ export default class ProfileScreen extends React.Component {
             zipcodeError: '',
             vehicleError: '',
             paymentError: '',
+
+            userType: this.props.navigation.state.params.user_type,
         }
     }
 
@@ -80,7 +82,7 @@ export default class ProfileScreen extends React.Component {
 
     render() {
         const { navigate } = this.props.navigation;
-        const isMover = userType == 'mover' ? true : false;
+        const isMover = this.state.userType == 'mover' ? true : false;
 
         const updateProfile = () => {
             // TODO: Validate form and post data to DB
@@ -104,7 +106,7 @@ export default class ProfileScreen extends React.Component {
                 ) {
 
                     const validData = {
-                        "type": userType,
+                        "type": this.state.userType,
                         "first_name": this.state.newFirstName,
                         "last_name": this.state.newLastName,
                         "username": this.state.newUsername,
@@ -171,104 +173,141 @@ export default class ProfileScreen extends React.Component {
             alert("Tapping photo will trigger prompt to upload new photo");
         };
 
+        const logout = () => {
+            fetch(api + "/logout", {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                }, credentials: 'same-origin',
+            }).then(response => {
+                if (response.status === 200) {
+                    navigate("InitialOptions");
+                } else {
+                    throw new Error('Something went wrong on api server!');
+                }
+            });
+        }
+
         return (
                 <ScrollView>
-                    <View style={styles.container}>
 
-                        <View style={styles.grayHeader}>
+                    <View style={styles.grayHeader}>
                             <Text style={styles.h1}>{this.state.firstName}&apos;s Profile</Text>
+                            <TouchableOpacity
+                                onPress={() => {logout()}} >
+                                <Text>Logout</Text>
+                            </TouchableOpacity>
                         </View>
 
-                    <Text
-                        style={{display: this.state.validatedPhone ? 'none' : 'flex',
-                            width: "100%",
-                            backgroundColor: "yellow",
-                            padding: 5,
-                            marginTop: 0,
-                            textAlign: 'center',
-                        }}
-                        onPress={() => navigate('GetCode')}
-                    >Phone not yet validated. Tap here to validate phone</Text>
-                    <View style={{flex:0, flexDirection: "row", justifyContent: "space-between", width: "90%", marginTop: 20}}>
-                        <TouchableOpacity onPress={() => updateProfilePhoto()}>
-                            <Image source={this.state.profilePhoto} style={{width: 100, height: 100}}/>
+                    <View style={styles.containerTop}>
+
+                        <Text
+                            style={{display: this.state.validatedPhone ? 'none' : 'flex',
+                                width: "100%",
+                                backgroundColor: "yellow",
+                                padding: 5,
+                                marginTop: 0,
+                                textAlign: 'center',
+                            }}
+                            onPress={() => navigate('GetCode')}
+                        >Phone not yet validated. Tap here to validate phone</Text>
+
+                        <TouchableOpacity style={{alignItems: "center"}}
+                                          onPress={() => updateProfilePhoto()}>
+                            <Image source={this.state.profilePhoto} style={{margin: 10, width: 100, height: 100}}/>
+                            <Text style={{color: "#999"}}>Tap to update profile photo</Text>
                         </TouchableOpacity>
-                        <View style={{width: "80%", alignItems: 'flex-start', flexDirection: "row", marginLeft: 20}}>
-                            <View>
-                            <Text style={styles.jobDetailDesc}>First Name</Text>
-                            <TextInput
-                                style={[styles.formField, {width: 100, marginRight: 10}]}
-                                placeholder="First Name"
-                                defaultValue={this.state.firstName}
-                                onChangeText={(text) => this.setState({newFirstName: text})}
-                            />
-                                <Text style={styles.errorText}>{this.state.firstNameError}</Text>
+
+                        <View style={{width: "90%", alignItems: "center", marginTop: 30}}>
+                            <View style={{ flexDirection: "row", alignItems: "flex-start", height: 40}}>
+                                <Text style={{fontSize: 16, color: "#999", width: "50%", textAlign: "right"}}>First Name</Text>
+                                <TextInput
+                                    style={[{fontSize: 16, marginLeft: 20, width: "50%"}]}
+                                    placeholder="First Name"
+                                    defaultValue={this.state.firstName}
+                                    onChangeText={(text) => this.setState({newFirstName: text})}
+                                />
                             </View>
-                            <View>
-                            <Text style={styles.jobDetailDesc}>Last Name</Text>
+                            <Text style={[styles.errorText, {marginTop: -10}]}>{this.state.firstNameError}</Text>
+                        </View>
+
+
+                        <View style={{width: "90%", alignItems: "center", marginTop: 10}}>
+                            <View style={{ flexDirection: "row", alignItems: "flex-start", height: 40}}>
+                            <Text style={{fontSize: 16, color: "#999", width: "50%", textAlign: "right"}}>Last Name</Text>
                              <TextInput
-                                style={[styles.formField, {width: 100}]}
+                                style={[{fontSize: 16, marginLeft: 20, width: "50%"}]}
                                 placeholder="Last Name"
                                 defaultValue={this.state.lastName}
                                 onChangeText={(text) => this.setState({newLastName: text})}
                              />
-                                <Text style={styles.errorText}>{this.state.lastNameError}</Text>
                             </View>
+                            <Text style={[styles.errorText, {marginTop: -10}]}>{this.state.lastNameError}</Text>
                         </View>
-                    </View>
 
-                        <View style={{flexDirection: "row", marginTop: 20, width: "90%"}}>
-                            <View style={{width: "50%"}}>
-                                <Text style={styles.jobDetailDesc}>Username</Text>
+                        <View style={{width: "90%", alignItems: "center", marginTop: 10}}>
+                            <View style={{ flexDirection: "row", alignItems: "flex-start", height: 40}}>
+                                <Text style={{fontSize: 16, color: "#999", width: "50%", textAlign: "right"}}>Username</Text>
                                 <TextInput
-                                    style={[styles.formField, {marginRight: 10}]}
+                                    style={{fontSize: 16, marginLeft: 20, width: "50%"}}
                                     placeholder="Username"
                                     defaultValue={this.state.username}
                                     onChangeText={(text) => this.setState({newUsername: text})}
-                                /><Text style={styles.errorText}>{this.state.usernameError}</Text>
+                                />
+                                </View>
+                                <Text style={[styles.errorText, {marginTop: -10}]}>{this.state.usernameError}</Text>
                             </View>
-                            <View style={{width: "50%"}}>
-                                <Text style={styles.jobDetailDesc}>Password</Text>
+
+
+                        <View style={{width: "90%", alignItems: "center", marginTop: 10, marginBottom: 30}}>
+                            <View style={{ flexDirection: "row", alignItems: "flex-start", height: 40}}>
+                                <Text style={{fontSize: 16, color: "#999", width: "50%", textAlign: "right"}}>Password</Text>
                                 <TextInput
-                                    style={styles.formField}
+                                    style={{fontSize: 16, marginLeft: 20, width: "50%"}}
                                     placeholder="Password"
                                     secureTextEntry={true}
-                                    defaultValue={this.state.password}
+                                    defaultValue="******"
                                     onChangeText={(text) => this.setState({newPassword: text})}
-                                /><Text style={styles.errorText}>{this.state.passwordError}</Text>
+                                />
+                                </View>
+                                <Text style={[styles.errorText, {marginTop: -10}]}>{this.state.passwordError}</Text>
                             </View>
-                        </View>
 
-                        <View style={{width: "90%", display: isMover ? 'flex' : 'none'}}>
-                            <Text style={styles.jobDetailDesc}>Zip Code</Text>
+                        <View style={{width: "90%", display: isMover ? 'flex' : 'none', alignItems: "center", marginTop: 10}}>
+                            <View style={{ flexDirection: "row", alignItems: "flex-start", height: 40}}>
+                            <Text style={{fontSize: 16, color: "#999", width: "50%", textAlign: "right"}}>Zip Code</Text>
                             <TextInput
-                                style={styles.formField}
+                                style={{fontSize: 16, marginLeft: 20, width: "50%"}}
                                 placeholder="Zip Code"
                                 defaultValue={this.state.zipCode}
                                 onChangeText={(text) => this.setState({newZipCode: text})}
-                            /><Text style={styles.errorText}>{this.state.zipcodeError}</Text>
+                            />
+                            </View>
+                            <Text style={styles.errorText}>{this.state.zipcodeError}</Text>
                         </View>
 
-                        <View style={{width: "90%", display: isMover ? 'flex' : 'none'}}>
-                            <Text style={styles.jobDetailDesc}>Vehicle Type</Text>
-
+                        <View style={{width: "90%", display: isMover ? 'flex' : 'none', alignItems: "center", marginTop: 10}}>
+                            <View style={{ flexDirection: "row", alignItems: "flex-start", height: 40}}>
+                            <Text style={{fontSize: 16, color: "#999", width: "50%", textAlign: "right"}}>Vehicle Type</Text>
                             <TextInput
-                                style={styles.formField}
+                                style={{fontSize: 16, marginLeft: 20, width: "50%"}}
                                 placeholder="Vehicle Type"
                                 defaultValue={this.state.vehicle}
                                 onChangeText={(text) => this.setState({newVehicle: text})}
-                            /><Text style={styles.errorText}>{this.state.vehicleError}</Text>
+                            /></View>
+                            <Text style={styles.errorText}>{this.state.vehicleError}</Text>
                         </View>
 
-                        <View style={{width: "90%", display: isMover ? 'flex' : 'none'}}>
-                            <Text style={styles.jobDetailDesc}>Payment Types Accepted</Text>
-
+                        <View style={{width: "90%", display: isMover ? 'flex' : 'none', alignItems: "center", marginTop: 10, marginBottom: 30}}>
+                            <View style={{ flexDirection: "row", alignItems: "flex-start", height: 40}}>
+                            <Text style={{fontSize: 16, color: "#999", width: "50%", textAlign: "right"}}>Payment Types Accepted</Text>
                             <TextInput
-                                style={styles.formField}
-                                placeholder="Payment Types Accepted"
+                                style={{fontSize: 16, marginLeft: 20, width: "50%"}}
+                                placeholder="Payment Types"
                                 defaultValue={this.state.payments}
                                 onChangeText={(text) => this.setState({newPayments: text})}
-                            /><Text style={styles.errorText}>{this.state.paymentError}</Text>
+                            /></View>
+                            <Text style={styles.errorText}>{this.state.paymentError}</Text>
                         </View>
 
                     <View style={styles.grayFooter}>

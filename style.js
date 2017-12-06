@@ -7,18 +7,23 @@ export default StyleSheet.create({
         backgroundColor: '#fff',
         alignItems: 'center',
         justifyContent: 'center',
-        marginTop: 24,
+        minHeight: "100%"
+    },
+    innerContainer: {
+        height: "80%",
+        width: "90%",
     },
     containerTop: {
         flex: 1,
         backgroundColor: '#fff',
         alignItems: 'center',
-        marginTop: 24,
+        justifyContent: 'space-between',
     },
     grayHeader: {
-        backgroundColor: "#e8e8e8",
+        backgroundColor: "#fff",
         width: "100%",
         padding: 20,
+        marginTop: 24,
         flex: 0,
         alignItems: 'center',
     },
@@ -70,12 +75,10 @@ export default StyleSheet.create({
         height: 40,
         width: "90%",
         marginTop: 10,
-        marginBottom: 10,
     },
     errorText: {
         color: '#b20808',
         fontSize: 10,
-        marginTop: -10,
     },
     navigation: {
         flex: 1,

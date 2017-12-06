@@ -55,7 +55,7 @@ class RegistrationScreen extends React.Component {
 
     render() {
         const {navigate} = this.props.navigation;
-        const isMover = this.state.userType == 'mover' ? true : false;
+        const isMover = this.props.navigation.state.params.user_type === 'mover' ? true : false;
 
         const submitForm = () => {
 
@@ -66,7 +66,7 @@ class RegistrationScreen extends React.Component {
                 lastNameError: validateStr("Last name", this.state.lastName, 100),
                 usernameError: validateStr("Username", this.state.username, 50),
                 passwordError: validateStr("Password", this.state.password, 100),
-                photoError: this.state.imageData === null ? "Please upload a profile photo" : "",
+                //photoError: this.state.imageData === null ? "Please upload a profile photo" : "",
 
             }, () => {
 
@@ -117,7 +117,7 @@ class RegistrationScreen extends React.Component {
                             throw new Error('Something went wrong on api server!');
                         }
                     }).catch(function(error) {
-                        alert(error);
+                        console.log(error);
                     })
 
                 } else {
@@ -132,10 +132,16 @@ class RegistrationScreen extends React.Component {
 
 
             <ScrollView>
-                <View style={{ flex: 1, marginTop: 24, alignItems: "center", flexDirection: "column",
-        justifyContent: 'center',}}>
 
-                    <Text style={[styles.h1, {marginTop: 20}]}>Register as {userType}</Text>
+                <View style={styles.grayHeader}>
+                    <Text style={[styles.h1, {marginTop: 20}]}>Register as {this.state.userType}</Text>
+                </View>
+
+                <View style={{backgroundColor: "#fff", alignItems: "center", marginTop: -20}}>
+
+                <View style={{width: "90%", flex: 1, marginTop: 24, alignItems: "center", flexDirection: "column",
+        justifyContent: 'center'}}>
+
                     <View style={{flexDirection: "row", justifyContent: "space-between", width: "90%"}}>
                         <View style={{ width: "45%", height: 40}}>
                         <TextInput
@@ -150,7 +156,7 @@ class RegistrationScreen extends React.Component {
                                 }
                             }
                         />
-                        <Text style={styles.errorText}>{ this.state.firstNameError }</Text>
+                        <Text style={[styles.errorText, {marginTop: -10}]}>{ this.state.firstNameError }</Text>
                         </View>
 
                         <View style={{ width: "45%", height: 40}}>
@@ -163,7 +169,7 @@ class RegistrationScreen extends React.Component {
                                     lastNameError: validateStr("Last name", text, 100)
                                 })
                             }
-                        /><Text style={styles.errorText}>{ this.state.lastNameError }</Text>
+                        /><Text style={[styles.errorText, {marginTop: -10}]}>{ this.state.lastNameError }</Text>
                         </View>
                     </View>
 
@@ -177,10 +183,10 @@ class RegistrationScreen extends React.Component {
                             usernameError: validateStr("Username", text, 50)
                         })
                         }
-                    /><Text style={styles.errorText}>{ this.state.usernameError }</Text>
+                    /><Text style={[styles.errorText, {marginTop: -10}]}>{ this.state.usernameError }</Text>
                     </View>
 
-                    <View style={styles.formField}>
+                    <View style={[styles.formField, {marginBottom: 30}]}>
                     <TextInput
                         style={{height: 40, width: "100%", marginTop:10, marginBottom:5}}
                         placeholder="Password"
@@ -191,7 +197,7 @@ class RegistrationScreen extends React.Component {
                                     passwordError: validateStr("Password", text, 100)
                                 })
                             }
-                    /><Text style={styles.errorText}>{ this.state.passwordError }</Text>
+                    /><Text style={[styles.errorText, {marginTop: -10}]}>{ this.state.passwordError }</Text>
                     </View>
 
                     <View style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}>
@@ -204,7 +210,7 @@ class RegistrationScreen extends React.Component {
                                     zipcodeError: validateInt("Zipcode", text, 5)
                                 })
                             }
-                    /><Text style={styles.errorText}>{ this.state.zipcodeError }</Text>
+                    /><Text style={[styles.errorText, {marginTop: -10}]}>{ this.state.zipcodeError }</Text>
                     </View>
 
                     <View style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}>
@@ -217,10 +223,10 @@ class RegistrationScreen extends React.Component {
                                     vehicleError: validateStr("Vehicle", text, 100)
                                 })
                             }
-                    /><Text style={styles.errorText}>{ this.state.vehicleError }</Text>
+                    /><Text style={[styles.errorText, {marginTop: -10}]}>{ this.state.vehicleError }</Text>
                     </View>
 
-                    <View style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}>
+                    <View style={[styles.formField, {display: isMover ? 'flex' : 'none', marginBottom: 20}]}>
                     <TextInput
                         style={{height: 40, width: "100%", marginTop:10, marginBottom:5, display: isMover ? 'flex' : 'none'}}
                         placeholder="Payment Types Accepted"
@@ -230,11 +236,11 @@ class RegistrationScreen extends React.Component {
                                     paymentError: validateStr("Payment", text, 100)
                                 })
                             }
-                    /><Text style={styles.errorText}>{ this.state.paymentError }</Text>
+                    /><Text style={[styles.errorText, {marginTop: -10}]}>{ this.state.paymentError }</Text>
                     </View>
 
                     <TouchableOpacity
-                        style={{alignItems: "center"}}
+                        style={{alignItems: "center", marginBottom: 30}}
                         onPress={() => {
                             this.props.navigation.state.params.previous_data = this.state;
                             navigate("Camera", {"previous_data": this.props.navigation.state.params.previous_data})
@@ -244,7 +250,8 @@ class RegistrationScreen extends React.Component {
                         <Text style={{height: 30, width: "90%", marginTop: 20, margin:10, display: this.state.imageData ? "none" : "flex"}}>📷 Take Profile Photo</Text>
                         <Text style={styles.errorText}>{ this.state.photoError }</Text>
                         <Text style={{height: 30, width: "90%", marginTop: 20, margin:10, display: this.state.imageData ? "flex" : "none"}}>Photo Uploaded Successfully. Tap to retake.</Text>
-                        <Image source={{uri: this.state.imageData}} style={{
+                        <Image
+                               source={{uri: this.state.imageData ? 'data:image/png;base64,' + this.state.imageData : "./../img/jeff.png"}} style={{
                             display: this.state.imageData ? "flex" : "none",
                             width: 100,
                             height: 100
@@ -253,6 +260,10 @@ class RegistrationScreen extends React.Component {
 
                     </TouchableOpacity>
 
+
+
+                    </View>
+                    <View style={styles.grayFooter}>
                     <TouchableOpacity
                         onPress={() => submitForm() ? navigate('GetCode') : false}
                         style={styles.bigButton}
@@ -260,9 +271,8 @@ class RegistrationScreen extends React.Component {
                         <Text style={{color: "#fff", fontSize: 20}}>Create Account</Text>
                     </TouchableOpacity>
                     <Text style={styles.errorText}>{ this.state.allErrors }</Text>
-
-
                     </View>
+                </View>
                  </ScrollView>
         );
 }

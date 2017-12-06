@@ -22,8 +22,7 @@ export default class InitialOptionScreen extends React.Component {
                 >Man With A Van</Text>
                 <TouchableOpacity
                     onPress={() => {
-                        userType = 'mover';
-                        navigate('Login');
+                        navigate('Login', {"user_type": "mover"});
                     }}
                     style={styles.bigButton}
                 >
@@ -32,8 +31,7 @@ export default class InitialOptionScreen extends React.Component {
 
                 <TouchableOpacity
                     onPress={() => {
-                        userType = 'requester';
-                        navigate('Login');
+                        navigate('Login', {"user_type": "requester"});
                     }}
                     style={styles.bigButton}
                 >
@@ -42,7 +40,6 @@ export default class InitialOptionScreen extends React.Component {
 
                     <Text
                     onPress={() => {
-                        userType = 'mover';
                         navigate('Register', {"user_type": "mover", "image_data": null, "previous_data": null});
                     }}
                     style={{margin: 5}}
@@ -50,7 +47,6 @@ export default class InitialOptionScreen extends React.Component {
 
                     <Text
                     onPress={() => {
-                        userType = 'requester';
                         navigate('Register', {"user_type": "requester", "image_data": null, "previous_data": null});
                     }}
                     style={{margin: 5}}

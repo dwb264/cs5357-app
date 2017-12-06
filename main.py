@@ -84,15 +84,6 @@ def add_new_user():
         raise BadRequest('missing first name')
     if body.get('last_name') is None:
         raise BadRequest('missing last name')
-    if body.get('zipcode') is None:
-        raise BadRequest('missing zip code')
-    else:
-        zipcode = body.get('zipcode')
-        if len(zipcode)!=5 or zipcode.isdigit()==False:
-            raise BadRequest("Invalid zip code")
-        zipcode = int(zipcode)
-    if body.get('payment') is None:
-        raise BadRequest('missing payment type')
     if body.get("phone") is None:
         phone = None
     else:
@@ -117,7 +108,8 @@ def add_new_user():
     if body.get("photo") is None:
         raise BadRequest("Missing photo")
     else:
-        data = imageStorage(body.get("photo"))
+        #data = imageStorage(body.get("photo"))
+        data = body.get("photo")
 
     password_hash = security.generate_password_hash(body.get('password'))
 
@@ -141,6 +133,7 @@ def add_new_user():
     user = users.find_one({'username': body.get('username')})
     serializable_user_obj = json.loads(json_util.dumps(user))
     session['user'] = serializable_user_obj
+    print session['user']
 
     return Response(status=201)
 

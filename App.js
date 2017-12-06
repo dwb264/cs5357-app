@@ -25,8 +25,6 @@ var userType; // either mover or requester
 var api = "http://127.0.0.1:8081";
 var jobId = null; // Current job id; null if no current job
 
-
-
 // StackNavigator: a registry of all screens in the app
 // Requester and mover both have a nested TabNavigator that contains their screens
 const App = StackNavigator({

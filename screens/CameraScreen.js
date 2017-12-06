@@ -140,9 +140,12 @@ export default class CameraScreen extends React.Component {
                         ]}
                         onPress={() => {
                             if (this.camera) {
-                                this.camera.takePictureAsync().then(image_data => {
+                                this.camera.takePictureAsync({base64: true}).then(image_data => {
                                     // console.log(this.state.previous_data);
-                                    navigate("Register", {"image_data": image_data.uri, "previous_data": this.state.previous_data});
+                                    navigate("Register", {"image_data": image_data.base64,
+                                        "previous_data": this.state.previous_data,
+                                        "user_type": this.state.previous_data.userType,
+                                    });
                                 });
                             }}}>
                         <Text style={styles.flipText}> SNAP </Text>
@@ -153,7 +156,7 @@ export default class CameraScreen extends React.Component {
                             styles.galleryButton,
                             { flex: 0.25, alignSelf: 'flex-end' },
                         ]}
-                        onPress={() => navigate("Register", {"image_data": null, "previous_data": this.state.previous_data})}>
+                        onPress={() => navigate("Register", {"image_data": null, "previous_data": this.state.previous_data, "user_type": this.state.previous_data.userType,})}>
                         <Text style={styles.flipText}> Cancel </Text>
                     </TouchableOpacity>
                 </View>
