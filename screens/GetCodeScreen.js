@@ -85,7 +85,7 @@ class GetCodeScreen extends React.Component {
                 <TouchableOpacity
                     onPress={() => {
                         if (this.state.userType == 'requester') {
-                            navigate('Requester');
+                            navigate('Requester', {"refresh": false});
                         } else {
                             navigate('Mover');
                         }

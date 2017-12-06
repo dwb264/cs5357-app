@@ -32,7 +32,6 @@ export default class MoverDetailScreen extends React.Component {
             if (response.status === 200) {
                 response = parseResponseBody(response);
                 this.setState({moverData: response});
-                jobId = null;
             } else {
                 throw new Error('Something went wrong on api server!');
             }

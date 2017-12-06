@@ -487,10 +487,10 @@ def getOffers(job_id):
     if session.get('user') is None:
         raise Unauthorized()
 
-    job = jobs.find_one({"_id": ObjectId(job_id)})
+    job = jobs.find_one({"_id": ObjectId(job_id), "job_status": "Open"})
 
     if job is None:
-        raise BadRequest("invalid Job ID")
+        raise BadRequest("No open jobs with that Job ID")
 
     return Response(json_util.dumps(offers.find({'jobId': job_id})), 200)
 
@@ -527,8 +527,7 @@ def acceptOffer():
     if job["job_status"] != "Open":
         raise BadRequest("Job already taken")
 
-
-    jobs.update_one({'_id':jobID},{'$set':{"job_status":"Closed"}})
+    jobs.update_one({'_id':ObjectId(body.get('job_id'))},{'$set':{"job_status":"Closed"}})
 
     return Response(200)
 

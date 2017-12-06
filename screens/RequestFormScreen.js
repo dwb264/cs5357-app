@@ -39,7 +39,44 @@ class RequestFormScreen extends React.Component {
 
             allErrors: '',
         };
+
+        if (this.props.navigation.state.params.refresh) {
+            // See if the user has a currently open job, and if so, load it
+            fetch(api + '/jobs', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+            }).then(response => {
+
+                console.log(response);
+
+                if (response.status === 200) {
+
+                    response = parseResponseBody(response);
+                    if (response) {
+                        this.setState({
+                            startAddress: response.start_address,
+                            endAddress: response.end_address,
+                            startTime: response.start_time,
+                            endTime: response.end_time,
+                            maximumPrice: response.max_price,
+                            description: response.description,
+                            submitted: true,
+                        })
+                        this.state.jobId = (response._id["$oid"]);
+                    }
+                } else {
+                    console.log(JSON.stringify(response));
+                    throw new Error('Something went wrong on api server!');
+                }
+            });
+        }
     }
+
+
 
     componentDidMount() {
         // See if the user has a currently open job, and if so, load it
@@ -72,39 +109,10 @@ class RequestFormScreen extends React.Component {
         });
     }
 
-    componentDidFocus() {
-        // See if the user has a currently open job, and if so, load it
-        fetch(api + '/jobs', {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-        }).then(response => {
-            if (response.status === 200) {
-                response = parseResponseBody(response);
-                if (response) {
-                    this.setState({
-                        startAddress: response.start_address,
-                        endAddress: response.end_address,
-                        startTime: response.start_time,
-                        endTime: response.end_time,
-                        maximumPrice: response.max_price,
-                        description: response.description,
-                        submitted: true,
-                    })
-                    this.state.jobId = (response._id["$oid"]);
-                }
-            } else {
-                console.log(JSON.stringify(response));
-                throw new Error('Something went wrong on api server!');
-            }
-        });
-    }
-
     render() {
         const { navigate } = this.props.navigation;
+
+
 
         const validateForm = () => {
 

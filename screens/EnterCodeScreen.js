@@ -63,7 +63,7 @@ class EnterCodeScreen extends React.Component {
                         if (response.status === 200) {
                             console.log(response);
                             if (this.state.userType == 'requester') {
-                                navigate('Requester');
+                                navigate('Requester', {"refresh": false});
                             } else {
                                 navigate('Mover');
                             }

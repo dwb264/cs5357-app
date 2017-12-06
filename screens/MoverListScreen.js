@@ -49,8 +49,6 @@ class MoverList extends React.Component {
                             if (jobResponse.status === 200) {
                                 jobResponse = parseResponseBody(jobResponse);
 
-                                console.log(jobResponse);
-
                                 var responsedata = [];
 
                                 for (var i = 0; i < jobResponse.length; i++) {
@@ -61,7 +59,7 @@ class MoverList extends React.Component {
                                 }
 
                                 this.setState({data: responsedata});
-                                console.log(responsedata);
+
                             } else {
                                 throw new Error('Something went wrong on api server!');
                             }

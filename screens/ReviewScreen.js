@@ -117,7 +117,7 @@ export default class ReviewScreen extends React.Component {
                         ><Text style={{color: "#fff", fontSize: 20}}>Submit Review</Text></TouchableOpacity>
                     <Text
                         style={{margin:30, fontSize:16, color: "#666"}}
-                        onPress={() => navigate("Requester")}
+                        onPress={() => navigate("Requester", {"refresh": true})}
                     >Cancel</Text>
                 </View>
             </View>
