@@ -67,16 +67,11 @@ class RegistrationScreen extends React.Component {
                 usernameError: validateStr("Username", this.state.username, 50),
                 passwordError: validateStr("Password", this.state.password, 100),
                 //photoError: this.state.imageData === null ? "Please upload a profile photo" : "",
+                zipcodeError: isMover ? validateInt("Zipcode", this.state.zipcode, 5) : "",
+                vehicleError: isMover ? validateStr("Vehicle", this.state.vehicle, 100) : "",
+                paymentError: isMover ? validateStr("Payment", this.state.payment, 50) : "",
 
             }, () => {
-
-                if (isMover) {
-                    this.setState({
-                        zipcodeError: validateInt("Zipcode", this.state.zipcode, 5),
-                        vehicleError: validateStr("Vehicle", this.state.vehicle, 100),
-                        paymentError: validateStr("Payment", this.state.payment, 50),
-                    })
-                }
 
                 if (this.state.firstNameError == ""
                     && this.state.lastNameError == ""
