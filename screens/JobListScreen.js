@@ -70,7 +70,7 @@ class JobList extends React.Component {
             <View style={styles.containerTop}>
 
             <View style={styles.grayHeader}>
-                <Text style={styles.h1}>{this.state.data.length} jobs are available{this.state.data.length > 0 ? "!" : " :("}</Text>
+                <Text style={styles.h1}>{this.state.data.length} job(s) available{this.state.data.length > 0 ? "!" : " :("}</Text>
             </View>
 
                 <ScrollView style={{width: "90%"}}>

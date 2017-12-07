@@ -152,13 +152,13 @@ export default class JobDetailScreen extends React.Component {
                             <Text style={styles.jobDetailInfo}>{this.state.data.end_time}</Text>
 
                         </View>
-                        <View>
+                        <View style={{width: "50%"}}>
 
                             <Text style={styles.jobDetailDesc}>Start address</Text>
-                            <Text style={styles.jobDetailInfo}>{this.state.data.start_address}</Text>
+                            <Text style={[styles.jobDetailInfo]}>{this.state.data.start_address}</Text>
 
                             <Text style={styles.jobDetailDesc}>End address</Text>
-                            <Text style={styles.jobDetailInfo}>{this.state.data.end_address}</Text>
+                            <Text style={[styles.jobDetailInfo]}>{this.state.data.end_address}</Text>
 
                         </View>
                     </View>
