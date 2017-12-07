@@ -181,22 +181,22 @@ class RequestFormScreen extends React.Component {
 
                 <ScrollView>
 
-                    <View style={{width: "90%", marginLeft: "5%"}}>
+                    <View style={{width: "90%", marginLeft: "5%", marginTop: 20}}>
 
-                        <View style={{height: 70,}}>
+                        <View style={{height: 100,}}>
                             <Text style={styles.jobDetailDesc}>Start Address</Text>
                             <TextInput
-                                style={{ display: this.state.submitted ? "none" : "flex" }}
+                                style={{ display: this.state.submitted ? "none" : "flex" , height: 40}}
                                 placeholder="1 Main St, Anytown, NY, 10101"
                                 onChangeText={(text) => this.setState({startAddress: text})}
                             /><Text style={styles.errorText}>{ this.state.startAddressError } </Text>
                             <Text style={{ fontSize: 16, display: this.state.submitted ? "flex" : "none" }}>{ this.state.startAddress } </Text>
                         </View>
 
-                        <View style={{height: 70}}>
+                        <View style={{height: 100}}>
                             <Text style={styles.jobDetailDesc}>End Address</Text>
                             <TextInput
-                                style={{ display: this.state.submitted ? "none" : "flex" }}
+                                style={{ display: this.state.submitted ? "none" : "flex" , height: 40}}
                                 placeholder="1 Main St, Anytown, NY, 10101"
                                 onChangeText={(text) => this.setState({endAddress: text})}
                             /><Text style={styles.errorText}>{ this.state.endAddressError } </Text>
@@ -204,10 +204,10 @@ class RequestFormScreen extends React.Component {
                         </View>
 
                         <View style={{flex:0, flexDirection: "row", justifyContent: "space-between", width: "95%"}}>
-                            <View style={{height: 70, width: "45%"}}>
+                            <View style={{height: 100, width: "45%"}}>
                                 <Text style={styles.jobDetailDesc}>Start Time</Text>
                                 <TextInput
-                                    style={{ display: this.state.submitted ? "none" : "flex"}}
+                                    style={{ display: this.state.submitted ? "none" : "flex", height: 40}}
                                     placeholder="1:00pm"
                                     onFocus={() => this.setState({timePickerVisible: true, activeField: "startTime"})}
                                     onChangeText={(text) => this.setState({startTime: text})}
@@ -215,10 +215,10 @@ class RequestFormScreen extends React.Component {
                                 <Text style={{ fontSize: 16, display: this.state.submitted ? "flex" : "none" }}>{ this.state.startTime } </Text>
                             </View>
 
-                            <View style={{height: 70, width: "45%"}}>
+                            <View style={{height: 100, width: "45%"}}>
                                 <Text style={styles.jobDetailDesc}>End Time</Text>
                                 <TextInput
-                                    style={{ display: this.state.submitted ? "none" : "flex" }}
+                                    style={{ display: this.state.submitted ? "none" : "flex", height: 40 }}
                                     placeholder="6:00pm"
                                     onFocus={() => this.setState({timePickerVisible: true, activeField: "endTime"})}
                                     onChangeText={(text) => this.setState({endTime: text})}
@@ -227,20 +227,20 @@ class RequestFormScreen extends React.Component {
                             </View>
                         </View>
 
-                        <View style={{height: 70}}>
+                        <View style={{height: 100}}>
                             <Text style={styles.jobDetailDesc}>Maximum Price</Text>
                             <TextInput
-                                style={{ display: this.state.submitted ? "none" : "flex" }}
+                                style={{ display: this.state.submitted ? "none" : "flex" , height: 40}}
                                 placeholder="500.00"
                                 onChangeText={(text) => this.setState({maximumPrice: text})}
                             /><Text style={styles.errorText}>{ this.state.maximumPriceError } </Text>
                             <Text style={{ fontSize: 16, display: this.state.submitted ? "flex" : "none" }}>{ this.state.maximumPrice } </Text>
                         </View>
 
-                        <View style={{height: 70}}>
+                        <View style={{height: 100}}>
                             <Text style={styles.jobDetailDesc}>Description of the job</Text>
                             <TextInput
-                                style={{ display: this.state.submitted ? "none" : "flex" }}
+                                style={{ display: this.state.submitted ? "none" : "flex", height: 40}}
                                 placeholder="Volume of items, type of items, etc"
                                 onChangeText={(text) => this.setState({description: text})}
                             /><Text style={styles.errorText}>{ this.state.descriptionError } </Text>
@@ -248,10 +248,6 @@ class RequestFormScreen extends React.Component {
                         </View>
 
                     </View>
-
-
-
-                </ScrollView>
 
                 <View style={styles.grayFooter}>
                     <TouchableOpacity
@@ -265,6 +261,10 @@ class RequestFormScreen extends React.Component {
                         <Text style={{marginTop:10, margin: 20, marginBottom: 30, fontSize:14, color: "#666", textAlign: "center"}}>Check the movers list to see if any movers have placed an offer.</Text>
                     </View>
                 </View>
+
+                </ScrollView>
+
+
 
             </View>
         );

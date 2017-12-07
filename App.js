@@ -61,7 +61,7 @@ const App = StackNavigator({
                 backgroundColor: '#0091EA',
             },
                 activeTintColor: "#fff",
-                inactiveTintColor: "#b8b8b8"
+                inactiveTintColor: "#e8e8e8"
         }
     }), navigationOptions: ({ navigation }) => ({
             header: null,
@@ -90,7 +90,7 @@ const App = StackNavigator({
             },
 
                 activeTintColor: "#fff",
-                inactiveTintColor: "#b8b8b8",
+                inactiveTintColor: "#e8e8e8",
 
         }
     }), navigationOptions: ({ navigation }) => ({

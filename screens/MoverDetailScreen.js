@@ -65,15 +65,17 @@ export default class MoverDetailScreen extends React.Component {
 
         return (
 
+
             <View style={{flex: 1, justifyContent: "space-between"}}>
 
-                <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff"}}>
+                <ScrollView>
+                <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff", }}>
                     <Image source={this.state.defaultPhoto}
-                                   style={{margin: 10, width: 100, height: 100,
+                                   style={{margin: 10, width: 100, height: 100, marginTop: 50,
                                        borderRadius: 50, display: this.state.moverData.photo ? "none" : "flex"}}/>
 
                             <Image source={{uri: "data:image/png;base64," + this.state.moverData.photo}}
-                                   style={{margin: 10, width: 100, height: 100,
+                                   style={{margin: 10, width: 100, height: 100, marginTop: 50,
                                        borderRadius: 50, display: this.state.moverData.photo ? "flex" : "none"}}/>
                     <Text style={{
                         height: 30,
@@ -87,7 +89,7 @@ export default class MoverDetailScreen extends React.Component {
                         Start at {this.state.offerData.start_time}</Text>
                     <Text style={{margin:10, fontSize:16}}>Phone: {this.state.moverData.phone}</Text>
                     <Text style={{margin:10, fontSize:16}}>Drives: {this.state.moverData.vehicle}</Text>
-                    <Text style={{margin:10, fontSize:16}}>Accepts: {this.state.moverData.payment}</Text>
+                    <Text style={{margin:10, fontSize:16, marginBottom: 30}}>Accepts: {this.state.moverData.payment}</Text>
                 </View>
 
                 <View style={[styles.grayFooter, {display: this.state.accepted ? "none" : "flex"}]}>
@@ -117,7 +119,9 @@ export default class MoverDetailScreen extends React.Component {
                     </TouchableOpacity>
                 </View>
 
+                    </ScrollView>
             </View>
+
 
         );
     }

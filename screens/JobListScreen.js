@@ -44,8 +44,26 @@ class JobList extends React.Component {
     render() {
 
         const refreshJobs = () => {
-            // TODO: GET available jobs from DB
-            // Same selection criteria and sorting parameters as above
+            fetch(api + "/jobs", {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                }, credentials: 'same-origin',
+            }).then(response => {
+                if (response.status === 200) {
+                    response = parseResponseBody(response);
+                    responsedata = [];
+                    for (var i = 0; i < response.length; i++) {
+                        responsedata.push({
+                            "key": i,
+                            "values": response[i]
+                        });
+                    }
+                    this.setState({data: responsedata});
+                } else {
+                    throw new Error('Something went wrong on api server!');
+                }
+            });
         };
 
         return(
@@ -55,7 +73,7 @@ class JobList extends React.Component {
                 <Text style={styles.h1}>{this.state.data.length} jobs are available{this.state.data.length > 0 ? "!" : " :("}</Text>
             </View>
 
-                <ScrollView style={{height: 400, width: "90%"}}>
+                <ScrollView style={{width: "90%"}}>
             <FlatList
                 data={this.state.data}
                 style={{width: "100%"}}

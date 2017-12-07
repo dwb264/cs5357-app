@@ -20,10 +20,10 @@ export default StyleSheet.create({
         justifyContent: 'space-between',
     },
     grayHeader: {
-        backgroundColor: "#fff",
+        backgroundColor: "#e8e8e8",
         width: "100%",
         padding: 20,
-        marginTop: 24,
+        paddingTop: 24,
         flex: 0,
         alignItems: 'center',
     },
@@ -36,8 +36,9 @@ export default StyleSheet.create({
         alignItems: 'center'
     },
     h1: {
-        width: "90%",
+        maxWidth: "90%",
         margin: 10,
+        marginTop: 20,
         fontSize: 24,
         color: "#666",
         textAlign: 'center'
@@ -55,7 +56,8 @@ export default StyleSheet.create({
     jobDetailDesc: {
         fontSize: 12,
         fontWeight: 'bold',
-        alignItems: 'flex-start'
+        alignItems: 'flex-start',
+        color: "#999"
     },
     jobDetailInfo: {
         fontSize: 18,
@@ -69,7 +71,7 @@ export default StyleSheet.create({
         paddingTop: 10,
         paddingBottom: 10,
         borderBottomWidth: 1,
-        borderBottomColor: "#999"
+        borderBottomColor: "#e8e8e8"
     },
     formField: {
         height: 40,
@@ -129,5 +131,32 @@ export default StyleSheet.create({
         height: "100%",
         backgroundColor: 'ivory',
     },
+    profileFormView: {
+        width: "90%",
+        alignItems: "center",
+        marginTop: 10,
+        height: 50,
+    },
+    profileFormView2: {
+        flexDirection: "row",
+        alignItems: "flex-start",
+        height: 40
+    },
+    profilePhoto: {
+        margin: 20,
+        marginTop: 30,
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+    },
+    profileFormLabel: {
+        fontSize: 16,
+        color: "#999",
+        width: "30%",
+        textAlign: "right",
+        marginTop: 10
+    }
+
+
 
 });

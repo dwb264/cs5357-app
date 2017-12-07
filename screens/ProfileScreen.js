@@ -212,11 +212,16 @@ export default class ProfileScreen extends React.Component {
                         onPress={() => navigate('GetCode', {'user_type': this.state.userType})}
                     >Phone not yet validated. Tap here to validate phone</Text>
 
-                    <View style={[styles.grayHeader, {marginTop: 0}]}>
+                    <View style={[styles.grayHeader, {
+                        justifyContent: "space-between",
+                        flexDirection: "row",
+                        alignItems: "flex-start"
+                    }]}>
                             <Text style={styles.h1}>{this.state.firstName}&apos;s Profile</Text>
                             <TouchableOpacity
+                                style={{backgroundColor: "#FF6E40", padding: 10, marginTop: 20}}
                                 onPress={() => {logout()}} >
-                                <Text>Logout</Text>
+                                <Text style={{color: "#fff"}}>Logout</Text>
                             </TouchableOpacity>
                         </View>
 
@@ -227,54 +232,66 @@ export default class ProfileScreen extends React.Component {
                                           onPress={() => updateProfilePhoto()} */>
 
                             <Image source={this.state.defaultPhoto}
-                                   style={{margin: 10, width: 100, height: 100,
-                                       borderRadius: 50, display: this.state.profilePhoto ? "none" : "flex"}}/>
+                                   style={[styles.profilePhoto, {display: this.state.profilePhoto ? "none" : "flex"}]}/>
 
                             <Image source={{uri: "data:image/png;base64," + this.state.profilePhoto}}
-                                   style={{margin: 10, width: 100, height: 100,
-                                       borderRadius: 50, display: this.state.profilePhoto ? "flex" : "none"}}/>
+                                   style={[styles.profilePhoto, {display: this.state.profilePhoto ? "flex" : "none"}]}/>
 
                             { /* <Text style={{color: "#999"}}>Tap to update profile photo</Text> */ }
                         </TouchableOpacity>
 
-                        <View style={{width: "90%", alignItems: "center", marginTop: 30}}>
-                            <View style={{ flexDirection: "row", alignItems: "flex-start", height: 40}}>
-                                <Text style={{fontSize: 16, color: "#999", width: "50%", textAlign: "right"}}>First Name</Text>
+                        <View style={styles.profileFormView}>
+                            <View style={styles.profileFormView2}>
+                                <Text style={styles.profileFormLabel}>First Name</Text>
+
+                                <View style={{width: "50%", marginLeft: 20}}>
                                 <TextInput
-                                    style={[{fontSize: 16, marginLeft: 20, width: "50%"}]}
+                                    style={{fontSize: 16, height: 40}}
                                     placeholder="First Name"
                                     defaultValue={this.state.firstName}
                                     onChangeText={(text) => this.setState({newFirstName: text})}
                                 />
+                                <Text style={styles.errorText}>{this.state.firstNameError}</Text>
+                                </View>
+
                             </View>
-                            <Text style={[styles.errorText, {marginTop: -10}]}>{this.state.firstNameError}</Text>
+
                         </View>
 
 
-                        <View style={{width: "90%", alignItems: "center", marginTop: 10}}>
-                            <View style={{ flexDirection: "row", alignItems: "flex-start", height: 40}}>
-                            <Text style={{fontSize: 16, color: "#999", width: "50%", textAlign: "right"}}>Last Name</Text>
+                        <View style={styles.profileFormView}>
+                            <View style={styles.profileFormView2}>
+                            <Text style={styles.profileFormLabel}>Last Name</Text>
+
+                              <View style={{width: "50%", marginLeft: 20}}>
                              <TextInput
-                                style={[{fontSize: 16, marginLeft: 20, width: "50%"}]}
+                                style={{fontSize: 16, height: 40}}
                                 placeholder="Last Name"
                                 defaultValue={this.state.lastName}
                                 onChangeText={(text) => this.setState({newLastName: text})}
                              />
+                                <Text style={styles.errorText}>{this.state.lastNameError}</Text>
+                                </View>
                             </View>
-                            <Text style={[styles.errorText, {marginTop: -10}]}>{this.state.lastNameError}</Text>
+
                         </View>
 
-                        <View style={{width: "90%", alignItems: "center", marginTop: 10}}>
-                            <View style={{ flexDirection: "row", alignItems: "flex-start", height: 40}}>
-                                <Text style={{fontSize: 16, color: "#999", width: "50%", textAlign: "right"}}>Username</Text>
+                        <View style={[styles.profileFormView, {marginBottom: 30}]}>
+                            <View style={styles.profileFormView2}>
+                                <Text style={styles.profileFormLabel}>Username</Text>
+
+                                <View style={{width: "50%", marginLeft: 20}}>
                                 <TextInput
-                                    style={{fontSize: 16, marginLeft: 20, width: "50%"}}
+                                    style={{fontSize: 16, height: 40}}
                                     placeholder="Username"
                                     defaultValue={this.state.username}
                                     onChangeText={(text) => this.setState({newUsername: text})}
                                 />
+                                <Text style={styles.errorText}>{this.state.usernameError}</Text>
+
                                 </View>
-                                <Text style={[styles.errorText, {marginTop: -10}]}>{this.state.usernameError}</Text>
+
+                                </View>
                             </View>
 
                         { /* You can't change your password sorry
@@ -295,41 +312,54 @@ export default class ProfileScreen extends React.Component {
                             */
                         }
 
-                        <View style={{width: "90%", display: isMover ? 'flex' : 'none', alignItems: "center", marginTop: 10}}>
-                            <View style={{ flexDirection: "row", alignItems: "flex-start", height: 40}}>
-                            <Text style={{fontSize: 16, color: "#999", width: "50%", textAlign: "right"}}>Zip Code</Text>
+                        <View style={[styles.profileFormView, {display: isMover ? 'flex' : 'none'}]}>
+                            <View style={styles.profileFormView2}>
+                            <Text style={styles.profileFormLabel}>Zip Code</Text>
+
+                                <View style={{width: "50%", marginLeft: 20}}>
                             <TextInput
-                                style={{fontSize: 16, marginLeft: 20, width: "50%"}}
+                                style={{fontSize: 16, height: 40}}
                                 placeholder="Zip Code"
                                 defaultValue={this.state.zipCode}
                                 onChangeText={(text) => this.setState({newZipCode: text})}
                             />
-                            </View>
                             <Text style={styles.errorText}>{this.state.zipcodeError}</Text>
+
+                            </View>
+
+                            </View>
                         </View>
 
-                        <View style={{width: "90%", display: isMover ? 'flex' : 'none', alignItems: "center", marginTop: 10}}>
-                            <View style={{ flexDirection: "row", alignItems: "flex-start", height: 40}}>
-                            <Text style={{fontSize: 16, color: "#999", width: "50%", textAlign: "right"}}>Vehicle Type</Text>
+                        <View style={[styles.profileFormView, {display: isMover ? 'flex' : 'none'}]}>
+                            <View style={styles.profileFormView2}>
+                            <Text style={styles.profileFormLabel}>Vehicle Type</Text>
+
+                                <View style={{width: "50%", marginLeft: 20}}>
                             <TextInput
-                                style={{fontSize: 16, marginLeft: 20, width: "50%"}}
+                                style={{fontSize: 16, height: 40}}
                                 placeholder="Vehicle Type"
                                 defaultValue={this.state.vehicle}
                                 onChangeText={(text) => this.setState({newVehicle: text})}
-                            /></View>
+                            />
                             <Text style={styles.errorText}>{this.state.vehicleError}</Text>
+                                    </View>
+                                </View>
                         </View>
 
-                        <View style={{width: "90%", display: isMover ? 'flex' : 'none', alignItems: "center", marginTop: 10, marginBottom: 30}}>
-                            <View style={{ flexDirection: "row", alignItems: "flex-start", height: 40}}>
-                            <Text style={{fontSize: 16, color: "#999", width: "50%", textAlign: "right"}}>Payment Types Accepted</Text>
+                        <View style={[styles.profileFormView, {display: isMover ? 'flex' : 'none', marginBottom: 30}]}>
+                            <View style={styles.profileFormView2}>
+                            <Text style={styles.profileFormLabel}>Payment Types</Text>
+
+                                <View style={{width: "50%", marginLeft: 20}}>
                             <TextInput
-                                style={{fontSize: 16, marginLeft: 20, width: "50%"}}
+                                style={{fontSize: 16, height: 40}}
                                 placeholder="Payment Types"
                                 defaultValue={this.state.payments}
                                 onChangeText={(text) => this.setState({newPayments: text})}
-                            /></View>
+                            />
                             <Text style={styles.errorText}>{this.state.paymentError}</Text>
+                                    </View>
+                            </View>
                         </View>
 
                     <View style={styles.grayFooter}>
